@@ -1,26 +1,31 @@
 package com.exer.videocollection;
 
-import android.app.ActionBar;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.text.Layout;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewStub;
-import android.widget.LinearLayout;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity
@@ -49,6 +54,10 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         View navheaderView = navigationView.getHeaderView(0);
         navheaderView.setOnClickListener(this);
+
+
+
+
     }
 
     @Override
@@ -111,6 +120,30 @@ public class MainActivity extends AppCompatActivity
                 LayoutInflater mInflater = LayoutInflater.from(this);
                 mInflater.inflate(R.layout.youku,coordinatorLayout);
                 currentView = findViewById(R.id.youku_layout);
+                TextView searchYouku = currentView.findViewById(R.id.search_text_youku);
+                searchYouku.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event){
+                        if (actionId == EditorInfo.IME_ACTION_SEND) {
+                            Toast.makeText(getApplicationContext(), v.getText(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                        return false;
+                    }
+                });
+                ListView videoList = currentView.findViewById(R.id.listview_youku);
+                //videoList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,nameList));
+                SimpleAdapter adapter = new SimpleAdapter(this,getData(),R.layout.listview_helper,
+                        new String[]{"title","info","img"},
+                        new int[]{R.id.title,R.id.info,R.id.img});
+                videoList.setAdapter(adapter);
+                videoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        TextView title = view.findViewById(R.id.title);
+                        Toast.makeText(getApplicationContext(), title.getText(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
                 break;
             case R.id.nav_camera:
                 ((Toolbar)findViewById(R.id.toolbar)).setTitle("camera");
@@ -139,5 +172,28 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private List<Map<String, Object>> getData() {
+        List<Map<String, Object>> list = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
+        map.put("title", "G1");
+        map.put("info", "google 1");
+        map.put("img", R.drawable.ic_menu_youku);
+        list.add(map);
+
+        map = new HashMap<>();
+        map.put("title", "G2");
+        map.put("info", "google 2");
+        map.put("img", R.drawable.ic_menu_camera);
+        list.add(map);
+
+        map = new HashMap<>();
+        map.put("title", "G3");
+        map.put("info", "google 3");
+        map.put("img", R.drawable.ic_menu_gallery);
+        list.add(map);
+
+        return list;
     }
 }
