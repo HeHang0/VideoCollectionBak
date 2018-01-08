@@ -1,4 +1,4 @@
-package com.exer.widget;
+package com.exer.widgets;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;

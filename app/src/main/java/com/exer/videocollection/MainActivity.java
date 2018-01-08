@@ -21,6 +21,8 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.exer.videoapi.NetVideo;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -131,15 +133,14 @@ public class MainActivity extends AppCompatActivity
                 });
                 ListView videoList = currentView.findViewById(R.id.listview_youku);
                 //videoList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,nameList));
-                SimpleAdapter adapter = new SimpleAdapter(this,getData(),R.layout.listview_helper,
+                SimpleAdapter adapter = new SimpleAdapter(this,getData(getVideoList()),R.layout.listview_helper,
                         new String[]{"title","info","img"},
                         new int[]{R.id.title,R.id.info,R.id.img});
                 videoList.setAdapter(adapter);
                 videoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                        TextView title = view.findViewById(R.id.title);
-                        Toast.makeText(getApplicationContext(), title.getText(),
+                        Toast.makeText(getApplicationContext(), getVideoList().get(i).getVideoUrl(),
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -173,25 +174,25 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private List<Map<String, Object>> getData() {
+    private List<NetVideo> getVideoList(){
+        List<NetVideo> list = new ArrayList<>();
+        for (int i=0; i < 15; i++){
+            list.add(new NetVideo("Title" + i,"Info" + i,"" + Integer.toString(R.drawable.ic_menu_youku),"Url" + i));
+        }
+        return list;
+    }
+
+    private List<Map<String, Object>> getData(List<NetVideo> videoList) {
         List<Map<String, Object>> list = new ArrayList<>();
-        Map<String, Object> map = new HashMap<>();
-        map.put("title", "G1");
-        map.put("info", "google 1");
-        map.put("img", R.drawable.ic_menu_youku);
-        list.add(map);
 
-        map = new HashMap<>();
-        map.put("title", "G2");
-        map.put("info", "google 2");
-        map.put("img", R.drawable.ic_menu_camera);
-        list.add(map);
-
-        map = new HashMap<>();
-        map.put("title", "G3");
-        map.put("info", "google 3");
-        map.put("img", R.drawable.ic_menu_gallery);
-        list.add(map);
+        Map<String, Object> map;
+        for (NetVideo n : videoList){
+            map = new HashMap<>();
+            map.put("title", n.getTitle());
+            map.put("info", n.getInfo());
+            map.put("img", String.valueOf(n.getImgUrl()));
+            list.add(map);
+        }
 
         return list;
     }
