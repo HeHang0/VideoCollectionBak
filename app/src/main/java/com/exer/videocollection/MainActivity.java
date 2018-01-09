@@ -1,6 +1,12 @@
 package com.exer.videocollection;
 
+import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.NavigationView;
@@ -9,24 +15,29 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.exer.videoapi.NetVideo;
+import com.exer.videoapi.NetVideoFrom;
+import com.exer.videoapi.NetVideoHelper;
+import com.exer.widgets.MyListAdapter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity
@@ -34,6 +45,8 @@ public class MainActivity extends AppCompatActivity
 
     private CoordinatorLayout coordinatorLayout;
     private View currentView;
+    private List<NetVideo> NetVideoList = new ArrayList<>();
+    private String SearchStr = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,10 +68,6 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         View navheaderView = navigationView.getHeaderView(0);
         navheaderView.setOnClickListener(this);
-
-
-
-
     }
 
     @Override
@@ -125,23 +134,53 @@ public class MainActivity extends AppCompatActivity
                 searchYouku.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                     public boolean onEditorAction(TextView v, int actionId, KeyEvent event){
                         if (actionId == EditorInfo.IME_ACTION_SEND) {
-                            Toast.makeText(getApplicationContext(), v.getText(),
-                                    Toast.LENGTH_SHORT).show();
+                            SearchStr = v.getText().toString();
+                            new Thread(new Runnable() {
+                                public void run() {
+                                    Message msg = new Message();
+                                    NetVideoList.clear();
+                                    NetVideoList.addAll(NetVideoHelper.getNetVideoList(SearchStr, NetVideoFrom.Youku));
+                                    handler.sendMessage(msg);
+                                }
+                            }).start();
                         }
                         return false;
                     }
                 });
-                ListView videoList = currentView.findViewById(R.id.listview_youku);
+                ListView videoListView = currentView.findViewById(R.id.listview_youku);
                 //videoList.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,nameList));
-                SimpleAdapter adapter = new SimpleAdapter(this,getData(getVideoList()),R.layout.listview_helper,
-                        new String[]{"title","info","img"},
-                        new int[]{R.id.title,R.id.info,R.id.img});
-                videoList.setAdapter(adapter);
-                videoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                getVideoList();
+                MyListAdapter adapter = new MyListAdapter(MainActivity.this, NetVideoList);
+                videoListView.setAdapter(adapter);
+                videoListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                        Toast.makeText(getApplicationContext(), getVideoList().get(i).getVideoUrl(),
-                                Toast.LENGTH_SHORT).show();
+                        Dialog dialog = new Dialog(MainActivity.this, R.style.ActionSheetDialogStyle);
+                        @SuppressLint("InflateParams") View inflate = LayoutInflater.from(MainActivity.this).inflate(R.layout.dialog_layout, null);
+                        LinearLayout ll = inflate.findViewById(R.id.dialog_layout);
+                        TextView tv = new TextView(MainActivity.this);
+                        tv.setText("哈哈哈");
+                        tv.setTextColor(Color.BLACK);
+                        tv.setGravity(Gravity.CENTER);
+                        tv.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+                        tv.setTextSize(18);
+                        tv.setHeight(110);
+                        ImageView v = new ImageView(MainActivity.this);
+                        v.setBackgroundColor(Color.GRAY);
+                        v.setMaxHeight(3);
+                        ll.addView(v);
+                        ll.addView(tv);
+                        dialog.setContentView(inflate);
+                        Window dialogWindow = dialog.getWindow();
+                        dialogWindow.setGravity( Gravity.BOTTOM);
+                        //获得窗体的属性
+                        WindowManager.LayoutParams lp = dialogWindow.getAttributes();
+                        lp.y = 20;//设置Dialog距离底部的距离
+                         //       将属性设置给窗体
+                        dialogWindow.setAttributes(lp);
+                        dialog.show();//显示对话框
+//                        Toast.makeText(getApplicationContext(), NetVideoList.get(i).getVideoUrl(),
+//                                Toast.LENGTH_SHORT).show();
                     }
                 });
                 break;
@@ -174,26 +213,20 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private List<NetVideo> getVideoList(){
-        List<NetVideo> list = new ArrayList<>();
+    private void getVideoList(){
         for (int i=0; i < 15; i++){
-            list.add(new NetVideo("Title" + i,"Info" + i,"" + Integer.toString(R.drawable.ic_menu_youku),"Url" + i));
+            NetVideoList.add(new NetVideo("Title" + i,"Info" + i,null,"Url" + i));
         }
-        return list;
     }
 
-    private List<Map<String, Object>> getData(List<NetVideo> videoList) {
-        List<Map<String, Object>> list = new ArrayList<>();
-
-        Map<String, Object> map;
-        for (NetVideo n : videoList){
-            map = new HashMap<>();
-            map.put("title", n.getTitle());
-            map.put("info", n.getInfo());
-            map.put("img", String.valueOf(n.getImgUrl()));
-            list.add(map);
+    @SuppressLint("HandlerLeak")
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            ListView videoListView = currentView.findViewById(R.id.listview_youku);
+            MyListAdapter la = (MyListAdapter) videoListView.getAdapter();
+            la.notifyDataSetChanged();
         }
-
-        return list;
-    }
+    };
 }

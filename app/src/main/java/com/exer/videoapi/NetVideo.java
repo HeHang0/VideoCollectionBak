@@ -1,51 +1,34 @@
 package com.exer.videoapi;
 
-/**
- * Created by HeHang on 2018/1/8.
- */
+
+import android.graphics.Bitmap;
 
 public class NetVideo {
     private String title;
     private String info;
-    private String imgUrl;
-    private String videoUrl;
+    private Bitmap img;
+    private String videoInfo;
 
-    public NetVideo(String title, String info, String imgUrl, String videoUrl){
+    public NetVideo(String title, String info, Bitmap img, String videoInfo){
         this.title = title;
         this.info = info;
-        this.imgUrl = imgUrl;
-        this.videoUrl = videoUrl;
+        this.img = img;
+        this.videoInfo = videoInfo;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public String getInfo() {
         return info;
     }
 
-    public void setInfo(String info) {
-        this.info = info;
-    }
-
-    public String getImgUrl() {
-        return imgUrl;
-    }
-
-    public void setImgUrl(String imgUrl) {
-        this.imgUrl = imgUrl;
+    public Bitmap getImg() {
+        return img;
     }
 
     public String getVideoUrl() {
-        return videoUrl;
-    }
-
-    public void setVideoUrl(String videoUrl) {
-        this.videoUrl = videoUrl;
+        return videoInfo;
     }
 }
