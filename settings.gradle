@@ -1,1 +1,1 @@
-include ':easyplayerlib', ':app'
+include ':app'
