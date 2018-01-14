@@ -2,6 +2,7 @@ package com.exer.widgets;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,10 +32,16 @@ public class MyListAdapter extends BaseAdapter {
         NetVideo info = list.get(position);
         TextView titleView = itemView.findViewById(R.id.title);
         TextView infoView = itemView.findViewById(R.id.info);
+        TextView imgText = itemView.findViewById(R.id.imgText);
         ImageView imageView = itemView.findViewById(R.id.img);
         titleView.setText(info.getTitle());
         infoView.setText(info.getInfo());
-        imageView.setImageBitmap(info.getImg());
+        if(info.getImg() != null){
+            imageView.setImageBitmap(info.getImg());
+            imgText.setVisibility(View.INVISIBLE);
+        }else if(info.getNumber() != null && !info.getNumber().isEmpty()){
+            imgText.setText(info.getNumber());
+        }
         return itemView;
     }
 

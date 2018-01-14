@@ -6,4 +6,5 @@
 
     <string name="action_settings">设置</string>
     <string name="clearinput">ClearInput</string>
+    <string name="todo">TODO</string>
 </resources>

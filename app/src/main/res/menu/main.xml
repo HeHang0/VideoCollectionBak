@@ -4,6 +4,7 @@
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
+        android:title="浏览器打开视频"
+        android:checked="false"
         app:showAsAction="never" />
 </menu>

@@ -7,13 +7,16 @@ public class NetVideo {
     private String title;
     private String info;
     private Bitmap img;
+    private String imgUrl;
     private String videoInfo;
+    private String number;
 
-    public NetVideo(String title, String info, Bitmap img, String videoInfo){
+    public NetVideo(String title, String info, String imgUrl, String videoInfo, String number){
         this.title = title;
         this.info = info;
-        this.img = img;
+        this.imgUrl = imgUrl;
         this.videoInfo = videoInfo;
+        this.number = number;
     }
 
     public String getTitle() {
@@ -24,11 +27,23 @@ public class NetVideo {
         return info;
     }
 
+    public String getVideoUrl() {
+        return videoInfo;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
     public Bitmap getImg() {
         return img;
     }
 
-    public String getVideoUrl() {
-        return videoInfo;
+    public void setImg(Bitmap img) {
+        this.img = img;
+    }
+
+    public String getNumber() {
+        return number;
     }
 }

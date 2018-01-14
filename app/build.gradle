@@ -18,12 +18,16 @@ android {
     }
     sourceSets {
         main {
-            java.srcDirs = ['src/main/java', 'src/main/java/com/exer/widget', 'src/main/java/widget']
+            java.srcDirs = ['src/main/java', 'src/main/java/com/exer/widget', 'src/main/java/widget', 'src/main/java/com/exer/videoapi/analysis']
             res.srcDirs = ['src/main/res', 'src/main/res/layout/layout_helper']
         }
     }
 }
-
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
@@ -34,4 +38,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:0.5'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:2.2.2'
     implementation files('libs/json-20171018.jar')
+    compile(name:'android-gif-drawable-1.2.10', ext:'aar')
 }
