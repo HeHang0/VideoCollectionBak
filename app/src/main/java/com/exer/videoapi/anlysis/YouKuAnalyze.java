@@ -65,6 +65,7 @@ public class YouKuAnalyze {
         Elements yk_dir = yk_dir_containerDoc.select("div.yk_card,div.ep_box");
 
         for(Element yk_dir_div: yk_dir) {
+            if (yk_dir_div.attr("id").equals("more-video")) continue;
             if(yk_dir_div.hasClass("yk_card")) {
                 Element item = yk_dir_div.getElementsByClass("card_link").first();
                 Element img = yk_dir_div.getElementsByTag("img").first();
@@ -72,7 +73,7 @@ public class YouKuAnalyze {
                 list.add(new NetVideo(
                         item.attr("_log_title"),
                         "",
-                        img.attr("src").replaceFirst("//", "http://"),
+                        img != null ? img.attr("src").replaceFirst("//", "http://") : "",
                         item.attr("href").replaceFirst("//", "http://"),
                         "" ));
             }else if(yk_dir_div.hasClass("ep_box")){
