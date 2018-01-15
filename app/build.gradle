@@ -39,4 +39,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:2.2.2'
     implementation files('libs/json-20171018.jar')
     compile(name:'android-gif-drawable-1.2.10', ext:'aar')
+    compile project(path: ':vitamio')
+    compile 'org.jetbrains:annotations-java5:15.0'
 }
