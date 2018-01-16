@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +37,7 @@ import com.exer.videoapi.NetVideoFrom;
 import com.exer.videoapi.NetVideoHelper;
 import com.exer.widgets.MyDialogAdapter;
 import com.exer.widgets.MyListAdapter;
+import com.exer.widgets.Tools;
 import com.exer.widgets.VideoUrlItem;
 
 import java.net.URL;
@@ -183,7 +185,7 @@ public class MainActivity extends AppCompatActivity
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event){
                 if (actionId == EditorInfo.IME_ACTION_SEND) {
                     SearchStr = v.getText().toString();
-                    HideKeyboard(v);
+                    Tools.HideKeyboard(v);
                     v.clearFocus();
                     v.setFocusable(false);
                     v.setFocusableInTouchMode(false);
@@ -243,16 +245,6 @@ public class MainActivity extends AppCompatActivity
         }).start();
     }
 
-    public static void HideKeyboard(View v)
-    {
-        InputMethodManager imm = ( InputMethodManager ) v.getContext( ).getSystemService( Context.INPUT_METHOD_SERVICE );
-        assert imm != null;
-        if ( imm.isActive( ) ) {
-            imm.hideSoftInputFromWindow( v.getApplicationWindowToken( ) , 0 );
-
-        }
-    }
-
     @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
         @Override
@@ -302,6 +294,7 @@ public class MainActivity extends AppCompatActivity
                         ad.setAdapter(mdAdapter, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
                                 if (!isPlayVideoInBrowser){
                                     Intent intent = new Intent(MainActivity.this, VideoPlayActivity.class);
                                     intent.putExtra("VideoUrl", videoUrlList.get(i).getUrl());

@@ -81,7 +81,7 @@ public class MyMediaController extends MediaController {
 
     @Override
     protected View makeControllerView() {
-        return (LayoutInflater.from(mContext)).inflate(R.layout.media_controller, this);//(getResources().getIdentifier("mediacontroller", "layout", mContext.getPackageName()), this);
+        return ((LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.media_controller, this);//(getResources().getIdentifier("mediacontroller", "layout", mContext.getPackageName()), this);
     }
 
     @Override

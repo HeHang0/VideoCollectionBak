@@ -83,7 +83,7 @@ public class NetVideoHelper {
 
     public static List<VideoUrlItem> getNetVideoUrlList(NetVideo nv, NetVideoFrom type) {
         String api = String.format(videoUrlApi.get(type), nv.getVideoUrl());
-        String retStr = sendDataByGet(api, "Android");
+        String retStr = sendDataByGet(api, "");
 
 
         return getVideoUrlListByJson(retStr,type);
@@ -175,7 +175,8 @@ public class NetVideoHelper {
             URL url = new URL(path); //URL对象
             conn = (HttpURLConnection)url.openConnection(); //使用URL打开一个链接,下面设置这个连接
             conn.setRequestMethod("GET"); //使用get请求
-            conn.setRequestProperty("User-agent",user_agent);
+            if (user_agent.length() > 0)
+                conn.setRequestProperty("User-agent",user_agent);
             if(conn.getResponseCode()==200){//返回200表示连接成功
                 is = conn.getInputStream(); //获取输入流
                 InputStreamReader isr = new InputStreamReader(is);

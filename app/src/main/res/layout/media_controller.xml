@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content">
-
-    <include layout="@layout/video_adjust_layout"></include>
 
     <include
         layout="@layout/video_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"></include>
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:orientation="vertical"
+        tools:ignore="RtlHardcoded" />
+
+    <include layout="@layout/video_adjust_layout" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -36,9 +42,9 @@
                 style="@style/MediaController_Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_marginRight="25dp" />
+                android:layout_marginEnd="25dp" />
 
             <SeekBar
                 android:id="@+id/mediacontroller_seekbar"
@@ -46,8 +52,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_toLeftOf="@id/mediacontroller_time_total"
-                android:layout_toRightOf="@id/mediacontroller_time_current"
+                android:layout_toStartOf="@id/mediacontroller_time_total"
+                android:layout_toEndOf="@id/mediacontroller_time_current"
                 android:focusable="true"
                 android:max="1000" />
 
@@ -56,7 +62,6 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/mediacontroller_seekbar_layout"
             android:background="@color/mediacontroller_bg"
             android:gravity="center_horizontal">
 
@@ -72,8 +77,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="20dp"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="25dp"
-                android:layout_toRightOf="@+id/mediacontroller_snapshot"
+                android:layout_marginStart="25dp"
+                android:layout_toEndOf="@+id/mediacontroller_snapshot"
                 android:src="@drawable/mediacontroller_previous" />
 
             <ImageButton
@@ -82,8 +87,8 @@
                 android:layout_height="20dp"
                 android:layout_centerVertical="true"
                 android:layout_marginBottom="5dp"
-                android:layout_marginLeft="25dp"
-                android:layout_toRightOf="@+id/mediacontroller_previous"
+                android:layout_marginStart="25dp"
+                android:layout_toEndOf="@+id/mediacontroller_previous"
                 android:background="@drawable/mediacontroller_button"
                 android:contentDescription="@string/mediacontroller_play_pause"
                 android:src="@drawable/mediacontroller_pause" />
@@ -93,8 +98,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="20dp"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="25dp"
-                android:layout_toRightOf="@+id/mediacontroller_play_pause"
+                android:layout_marginStart="25dp"
+                android:layout_toEndOf="@+id/mediacontroller_play_pause"
                 android:src="@drawable/mediacontroller_next" />
 
             <ImageView
@@ -102,8 +107,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="20dp"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="25dp"
-                android:layout_toRightOf="@+id/mediacontroller_next"
+                android:layout_marginStart="25dp"
+                android:layout_toEndOf="@+id/mediacontroller_next"
                 android:src="@drawable/mediacontroller_screen_fit" />
         </RelativeLayout>
     </LinearLayout>

@@ -5,7 +5,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.BatteryManager;
 import android.util.DisplayMetrics;
+import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -55,5 +57,17 @@ public class Tools {
         BatteryManager batteryManager=(BatteryManager)context.getSystemService(Context.BATTERY_SERVICE);
         if (batteryManager == null) return 100;
         return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY );
+    }
+
+
+
+    public static void HideKeyboard(View v)
+    {
+        InputMethodManager imm = ( InputMethodManager ) v.getContext( ).getSystemService( Context.INPUT_METHOD_SERVICE );
+        assert imm != null;
+        if ( imm.isActive( ) ) {
+            imm.hideSoftInputFromWindow( v.getApplicationWindowToken( ) , 0 );
+
+        }
     }
 }

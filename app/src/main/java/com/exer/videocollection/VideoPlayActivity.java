@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -43,6 +44,7 @@ public class VideoPlayActivity extends Activity  {
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         path = getIntent().getExtras().getString("VideoUrl");
@@ -71,7 +73,7 @@ public class VideoPlayActivity extends Activity  {
             mVideoView.requestFocus();
             setVideoPageSize(2);
             //mVideoView.setBufferSize(1024 * 1024);
-
+            startLoadingAnimator();
             mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mediaPlayer) {
@@ -104,7 +106,7 @@ public class VideoPlayActivity extends Activity  {
                             break;
                         case MediaPlayer.MEDIA_INFO_DOWNLOAD_RATE_CHANGED:
                             //显示 下载速度
-                            ((TextView)(mediaController.mRoot.findViewById(R.id.net_work_speed_tv))).setText(arg2+"kB/s");
+                            ((TextView)(mediaController.mRoot.findViewById(R.id.net_work_speed_tv))).setText(arg2 > 1024 ? String .format("%.2fMB/s", arg2*1.0/1024) : arg2+"kB/s");
                             ((TextView)(mediaController.mRoot.findViewById(R.id.currenttime_tv))).setText(Tools.getShortTime());
                             ((TextView)(mediaController.mRoot.findViewById(R.id.download_precent_tv))).setText(Tools.getBatterLevel(VideoPlayActivity.this) + "%");
                             break;
@@ -142,12 +144,6 @@ public class VideoPlayActivity extends Activity  {
     }
 
     private void stopPlay() {
-        mVideoView.pause();
-    }
-
-    public void onPause() {
-        super.onPause();
-//        currentPosition = mVideoView.getCurrentPosition();
         mVideoView.pause();
     }
 
@@ -247,7 +243,8 @@ public class VideoPlayActivity extends Activity  {
             msg.setData(data);
             handler.sendMessageDelayed(msg, 2000);
         } else {
-            VideoPlayActivity.this.finish();
+            onDestroy();
+            finish();
         }
     }
 }
