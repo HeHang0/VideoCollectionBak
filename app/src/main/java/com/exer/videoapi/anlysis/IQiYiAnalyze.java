@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 import static com.exer.videoapi.NetVideoHelper.VideoUrlTypr;
 
 
-public class IQiYiAnalize {
+public class IQiYiAnalyze {
     public static List<NetVideo> GetVideoListByHome(String retStr){
         List<NetVideo> list =  new ArrayList<>();
 //        String pattern = "<body[^>]*>([\\s\\S]*)</body>";
@@ -78,7 +78,7 @@ public class IQiYiAnalize {
 
         for(int i = 0; i < albun_links.size(); i++){
             Element link = albun_links.get(i);
-            if (link.attr("title").equals("更多")) continue;
+            if (link.hasClass("album_link-more") || link.attr("title").equals("更多")) continue;
             list.add(new NetVideo(
                     link.attr("title"),
                     "",

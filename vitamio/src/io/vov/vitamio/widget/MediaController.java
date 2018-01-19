@@ -26,6 +26,7 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Layout;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -226,6 +227,8 @@ public class MediaController extends FrameLayout {
       mRoot = makeControllerView();
       mRoot.setMinimumHeight(LayoutParams.FILL_PARENT);
       mWindow.setContentView(mRoot);
+      mWindow.setWidth(CenterLayout.LayoutParams.MATCH_PARENT);
+      mWindow.setHeight(CenterLayout.LayoutParams.MATCH_PARENT);
     }
     initControllerView(mRoot);
     initOtherView();

@@ -16,6 +16,14 @@
             android:id="@+id/nav_iqiyi"
             android:icon="@drawable/ic_menu_iqiyi"
             android:title="爱奇艺" />
+        <item
+            android:id="@+id/nav_cloundmusic"
+            android:icon="@drawable/ic_menu_cloudmusic"
+            android:title="云音乐" />
+        <item
+            android:id="@+id/nav_bilibili"
+            android:icon="@drawable/ic_menu_bilibili"
+            android:title="哔哩哔哩" />
         <!--<item-->
             <!--android:id="@+id/nav_camera"-->
             <!--android:icon="@drawable/ic_menu_camera"-->

@@ -157,6 +157,14 @@ public class MainActivity extends AppCompatActivity
                 ((Toolbar)findViewById(R.id.toolbar)).setTitle("爱奇艺");
                 OpenPlatePage(NetVideoFrom.IQiYi);
                 break;
+            case R.id.nav_cloundmusic:
+                ((Toolbar)findViewById(R.id.toolbar)).setTitle("云音乐");
+                OpenPlatePage(NetVideoFrom.CloudMusic);
+                break;
+            case R.id.nav_bilibili:
+                ((Toolbar)findViewById(R.id.toolbar)).setTitle("哔哩哔哩");
+                OpenPlatePage(NetVideoFrom.Bilibili);
+                break;
             case R.id.nav_share:
                 Toast.makeText(getApplicationContext(), "Share",
                         Toast.LENGTH_SHORT).show();
@@ -266,18 +274,13 @@ public class MainActivity extends AppCompatActivity
                             for(int i = 0; i < NetVideoList.size(); i++){
                                 NetVideo nv = NetVideoList.get(i);
                                 if (nv.getImg() == null && !(nv.getImgUrl() == null || nv.getImgUrl().isEmpty())){
-                                    try {
-                                        URL url = new URL(nv.getImgUrl());
-                                        nv.setImg(BitmapFactory.decodeStream(url.openStream()));
-                                        if(i % 11 == 0 || i == NetVideoList.size() - 1){
-                                            Message msg = new Message();
-                                            Bundle data = new Bundle();
-                                            data.putInt("MessageType",MessageType.YouKuImg.ordinal());
-                                            msg.setData(data);
-                                            handler.sendMessage(msg);
-                                        }
-                                    } catch (java.io.IOException e) {
-                                        e.printStackTrace();
+                                    nv.setImg(Tools.getImageThumbnail(nv.getImgUrl(), 320, 180));
+                                    if(i % 11 == 0 || i == NetVideoList.size() - 1){
+                                        Message msg = new Message();
+                                        Bundle data = new Bundle();
+                                        data.putInt("MessageType",MessageType.YouKuImg.ordinal());
+                                        msg.setData(data);
+                                        handler.sendMessage(msg);
                                     }
                                 }
                             }

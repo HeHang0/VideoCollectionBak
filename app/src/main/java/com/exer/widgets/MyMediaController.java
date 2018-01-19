@@ -168,15 +168,21 @@ public class MyMediaController extends MediaController {
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             float mOldX = e1.getX(), mOldY = e1.getY();
             int y = (int) e2.getRawY();
+            int x = (int) e2.getRawX();
             Display disp = ((Activity) mContext).getWindowManager().getDefaultDisplay();
             int windowWidth = disp.getWidth();
             int windowHeight = disp.getHeight();
-            if (mOldX > windowWidth * 4.0 / 5) {
+            if (mOldX > windowWidth * 0.45) {
                 onVolumeSlide((mOldY - y) / windowHeight);
                 return true;
-            } else if (mOldX < windowWidth / 5.0) {
+            } else if (mOldX < windowWidth * 0.45) {
                 onBrightnessSlide((mOldY - y) / windowHeight);
                 return true;
+            }
+            if (mOldX - x > windowWidth * 0.2){
+                activity.reverseVideo();
+            }else if(x -  mOldX> windowWidth * 0.2){
+                activity.speedVideo();
             }
             return false;
         }

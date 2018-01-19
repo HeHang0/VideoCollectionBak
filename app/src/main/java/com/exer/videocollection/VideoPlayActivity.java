@@ -71,6 +71,7 @@ public class VideoPlayActivity extends Activity  {
             mVideoView.setVideoPath(path);
             mVideoView.setMediaController(mediaController);
             mVideoView.requestFocus();
+            mVideoView.setHardwareDecoder(true);
             setVideoPageSize(2);
             //mVideoView.setBufferSize(1024 * 1024);
             startLoadingAnimator();

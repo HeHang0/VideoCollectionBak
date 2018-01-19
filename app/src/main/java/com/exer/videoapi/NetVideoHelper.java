@@ -4,16 +4,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 
-import com.exer.videoapi.anlysis.IQiYiAnalize;
+import com.exer.videoapi.anlysis.BilibiliAnalyze;
+import com.exer.videoapi.anlysis.CloudMusicAnalyze;
+import com.exer.videoapi.anlysis.IQiYiAnalyze;
 import com.exer.videoapi.anlysis.QQLiveAnalyze;
 import com.exer.videoapi.anlysis.YouKuAnalyze;
 import com.exer.widgets.VideoUrlItem;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -38,6 +38,12 @@ public class NetVideoHelper {
             put("HD", "高清");
             put("SUPERHD", "超清");
             put("1080P", "1080P");
+            put("240", "标清");
+            put("480", "高清");
+            put("720", "超清");
+            put("720P", "超清");
+            put("1080", "1080P");
+            put("ORIGINAL", "1080P");
         }
     };
     private static Map<NetVideoFrom, String> HomeUrlAPI = new HashMap<NetVideoFrom, String>(){
@@ -45,6 +51,8 @@ public class NetVideoHelper {
             put(NetVideoFrom.Youku,"http://www.youku.com");
             put(NetVideoFrom.QQLive,"http://m.v.qq.com");
             put(NetVideoFrom.IQiYi,"http://m.iqiyi.com/");
+            put(NetVideoFrom.CloudMusic,"http://music.163.com/api/cloudsearch/get/web?s=jfla&limit=50&type=1014&offset=0");
+            put(NetVideoFrom.Bilibili,"http://www.bilibili.com/index/catalogy/1-3day.json");
         }
     };
     private static Map<NetVideoFrom, String> searchAPI = new HashMap<NetVideoFrom, String>(){
@@ -53,6 +61,7 @@ public class NetVideoHelper {
             put(NetVideoFrom.Youku,"http://www.soku.com/m/y/video?q=%s");
             put(NetVideoFrom.QQLive,"http://m.v.qq.com/search.html?keyWord=%s");
             put(NetVideoFrom.IQiYi,"http://so.iqiyi.com/so/q_%s");
+            put(NetVideoFrom.CloudMusic,"http://music.163.com/api/cloudsearch/get/web?s=%s&limit=50&type=1014&offset=0");
         }
     };
     private static Map<NetVideoFrom, String> videoUrlApi = new HashMap<NetVideoFrom, String>(){
@@ -60,6 +69,8 @@ public class NetVideoHelper {
             put(NetVideoFrom.Youku, "http://api.v2.flvurl.cn/parse?single-only=true&appid=6170b6db0a881c18389f47d6d994340e&type=vod&url=%s");
             put(NetVideoFrom.QQLive, "http://api.v2.flvurl.cn/parse?single-only=true&appid=6170b6db0a881c18389f47d6d994340e&type=vod&url=%s");
             put(NetVideoFrom.IQiYi, "http://api.v2.flvurl.cn/parse?single-only=true&appid=6170b6db0a881c18389f47d6d994340e&type=vod&url=%s");
+            put(NetVideoFrom.CloudMusic,"http://music.163.com/api/mv/detail?id=%s&type=mp4");
+            put(NetVideoFrom.Bilibili, "http://api.v2.flvurl.cn/parse?single-only=true&appid=6170b6db0a881c18389f47d6d994340e&type=vod&url=https://www.bilibili.com/video/av%s");
         }
     };
     public static Bitmap getURLimage(String url) {
@@ -81,25 +92,36 @@ public class NetVideoHelper {
         return bmp;
     }
 
-    public static List<VideoUrlItem> getNetVideoUrlList(NetVideo nv, NetVideoFrom type) {
+    public static List<VideoUrlItem> getNetVideoUrlList(NetVideo nv, NetVideoFrom type){
         String api = String.format(videoUrlApi.get(type), nv.getVideoUrl());
-        String retStr = sendDataByGet(api, "");
-
-
-        return getVideoUrlListByJson(retStr,type);
-    }
-
-    private static List<VideoUrlItem> getVideoUrlListByJson(String retStr, NetVideoFrom type){
+        String retStr;
         List<VideoUrlItem> list = new ArrayList<>();
         switch (type){
             case Youku:
+                retStr = sendDataByGet(api, "");
                 list = YouKuAnalyze.GetVideoUrlList(retStr);
                 break;
             case QQLive:
+                retStr = sendDataByGet(api, "");
                 list = QQLiveAnalyze.GetVideoUrlList(retStr);
                 break;
             case IQiYi:
-                list = IQiYiAnalize.GetVideoUrlList(retStr);
+                retStr = sendDataByGet(api, "");
+                list = IQiYiAnalyze.GetVideoUrlList(retStr);
+                break;
+            case Bilibili:
+                retStr = sendDataByGet(api, "");
+                list = BilibiliAnalyze.GetVideoUrlList(retStr);
+                break;
+            case CloudMusic:
+                if (!nv.getVideoUrl().matches("^\\d+$")){
+                    api = CloudMusicAnalyze.getApiByCloudVideoId(nv.getVideoUrl());
+                    retStr = sendDataByPost(api);
+                    list = CloudMusicAnalyze.GetVideoUrlListSingle(retStr);
+                }else {
+                    retStr = sendDataByPost(api);
+                    list = CloudMusicAnalyze.GetVideoUrlList(retStr);
+                }
                 break;
         }
         return list;
@@ -116,8 +138,14 @@ public class NetVideoHelper {
                 case QQLive:
                     retStr = sendDataByGet(String.format(api, URLEncoder.encode(searchStr, "utf-8")), "Android");
                     break;
+//                case Bilibili:
+//                    retStr = sendDataByGet(String.format(api, URLEncoder.encode(searchStr, "utf-8")), "Android");
+//                    break;
                 case IQiYi:
                     retStr = sendDataByGet(String.format(api, URLEncoder.encode(searchStr, "utf-8")), "Win32");
+                    break;
+                case CloudMusic:
+                    retStr = sendDataByPost(String.format(api, URLEncoder.encode(searchStr, "utf-8")));
                     break;
             }
         } catch (UnsupportedEncodingException e) {
@@ -142,9 +170,17 @@ public class NetVideoHelper {
                 retStr = sendDataByGet(api,"Android");
                 list = QQLiveAnalyze.GetVideoListByHome(retStr);
                 break;
+            case Bilibili:
+                retStr = sendDataByGet(api,"Win32");
+                list = BilibiliAnalyze.GetVideoListByHome(retStr);
+                break;
             case IQiYi:
                 retStr = sendDataByGet(api,"Win32");
-                list = IQiYiAnalize.GetVideoListByHome(retStr);
+                list = IQiYiAnalyze.GetVideoListByHome(retStr);
+                break;
+            case CloudMusic:
+                retStr =sendDataByPost(api);
+                list = CloudMusicAnalyze.GetVideoListByHome(retStr);
                 break;
         }
         return list;
@@ -160,7 +196,10 @@ public class NetVideoHelper {
                 list = QQLiveAnalyze.GetNetVideoList(retStr);
                 break;
             case IQiYi:
-                list = IQiYiAnalize.GetNetVideoList(retStr);
+                list = IQiYiAnalyze.GetNetVideoList(retStr);
+                break;
+            case CloudMusic:
+                list = CloudMusicAnalyze.GetNetVideoList(retStr);
                 break;
         }
         return list;
@@ -200,8 +239,10 @@ public class NetVideoHelper {
         try {
             URL url = new URL(path); //URL对象
             conn = (HttpURLConnection)url.openConnection(); //使用URL打开一个链接,下面设置这个连接
-            conn.setRequestMethod("Post"); //使用get请求
-            conn.setRequestProperty("User-agent","Mozilla/5.0(Linux;U;Android2.2.1;zh-cn;HTC_Wildfire_A3333Build/FRG83D)AppleWebKit/533.1(KHTML,likeGecko)Version/4.0MobileSafari/533.1");
+            conn.setRequestMethod("POST"); //使用get请求
+            int index = path.indexOf(".com");
+            if (index > 4) conn.setRequestProperty("referer", path.substring(0, index+4));
+            //conn.setRequestProperty("User-agent","Win32");
             if(conn.getResponseCode()==200){//返回200表示连接成功
                 is = conn.getInputStream(); //获取输入流
                 InputStreamReader isr = new InputStreamReader(is);
@@ -215,6 +256,25 @@ public class NetVideoHelper {
             e.printStackTrace();
         }
         return resultData.toString();
+    }
+
+    public static String GetImagePathByUrl(String imgUrl, File file){
+        FileOutputStream fileOutputStream=null;
+        //文件夹不存在，则创建它
+        if(!file.exists()){
+            file.mkdir();
+        }
+
+        try {
+            URL url = new URL(imgUrl);
+
+            fileOutputStream=new FileOutputStream(file.getPath()+"/"+System.currentTimeMillis() + imgUrl.substring(imgUrl.length()-10,imgUrl.length()-4) +".png");
+            (BitmapFactory.decodeStream(url.openStream())).compress(Bitmap.CompressFormat.PNG, 100,fileOutputStream);
+            fileOutputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return file.getPath()+"/"+System.currentTimeMillis() + imgUrl.substring(imgUrl.length()-10,imgUrl.length()-4) +".png";
     }
 //    https://openapi.youku.com/v2/searches/video/by_keyword.json?count=20&client_id=53e6cc67237fc59a&page=1&keyword=%E8%A2%81%E8%85%BE%E9%A3%9E
 //    URL url = new URL("http://images.csdn.net/20130609/zhuanti.jpg");
