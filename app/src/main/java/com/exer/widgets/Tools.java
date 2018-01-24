@@ -15,10 +15,15 @@ import android.view.inputmethod.InputMethodManager;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -134,6 +139,25 @@ public class Tools {
             String base64Str = Base64.encodeToString(cipher.doFinal(str.getBytes("utf-8")), Base64.DEFAULT);
             return base64Str.replaceAll("\n", "").replaceAll("\r", "");
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    public static String getStrWithRegular(String pattern, String str){
+        Matcher m = Pattern.compile(pattern).matcher(str);
+        if (m.find()) {
+            return m.group(1);
+        }
+        return "";
+    }
+
+    public static String md5Encoder(String str){
+        try {
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            String newstr=Base64.encodeToString(md5.digest(str.getBytes("utf-8")), Base64.DEFAULT);
+            return newstr;
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         return "";

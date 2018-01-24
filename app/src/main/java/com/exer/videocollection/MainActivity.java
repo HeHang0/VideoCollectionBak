@@ -1,6 +1,7 @@
 package com.exer.videocollection;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,10 +20,13 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Display;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -37,6 +41,7 @@ import com.exer.videoapi.NetVideoFrom;
 import com.exer.videoapi.NetVideoHelper;
 import com.exer.widgets.MyDialogAdapter;
 import com.exer.widgets.MyListAdapter;
+import com.exer.widgets.MyMediaController;
 import com.exer.widgets.Tools;
 import com.exer.widgets.VideoUrlItem;
 
@@ -45,6 +50,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pl.droidsonroids.gif.GifImageView;
+
+import static com.exer.videoapi.NetVideoHelper.videoUrlApi;
 
 
 public class MainActivity extends AppCompatActivity
@@ -64,7 +71,7 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
-                ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
@@ -72,7 +79,17 @@ public class MainActivity extends AppCompatActivity
         LayoutInflater mInflater = LayoutInflater.from(this);
         mInflater.inflate(R.layout.content_main,coordinatorLayout);
         currentView = findViewById(R.id.content_main);
-
+        currentView.setOnTouchListener(new View.OnTouchListener() {
+            @SuppressLint("ClickableViewAccessibility")
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                //LogUtils.i(LogUtils.LOG_TAG, "onTouchEvent");
+                if ((new GestureDetector(MainActivity.this, new GestureListener())).onTouchEvent(event)) {
+                    return true;
+                }
+                return false;
+            }
+        });
         //coordinatorLayout.addView(contentView);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -128,6 +145,7 @@ public class MainActivity extends AppCompatActivity
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.nav_header:
+
                 ((Toolbar)findViewById(R.id.toolbar)).setTitle("VideoCollection");
                 coordinatorLayout.removeView(currentView);
                 LayoutInflater mInflater = LayoutInflater.from(this);
@@ -205,7 +223,7 @@ public class MainActivity extends AppCompatActivity
                         public void run() {
                             Message msg = new Message();
                             Bundle data = new Bundle();
-                            data.putInt("MessageType",MessageType.YouKuSearch.ordinal());
+                            data.putInt("MessageType",MessageType.Search.ordinal());
                             msg.setData(data);
                             NetVideoList.addAll(NetVideoHelper.getNetVideoList(SearchStr, pageType));
                             handler.sendMessage(msg);
@@ -231,11 +249,21 @@ public class MainActivity extends AppCompatActivity
                     public void run() {
                         Message msg = new Message();
                         Bundle data = new Bundle();
-                        data.putInt("MessageType",MessageType.YouKuUrl.ordinal());
                         data.putString("VideoTitle",netVideo.getTitle());
+                        switch (pageType){
+                            case Bilibili:
+                            case CloudMusic:
+                            case IQiYi:
+                                data.putInt("MessageType",MessageType.Url.ordinal());
+                                videoUrlList.clear();
+                                videoUrlList.addAll(NetVideoHelper.getNetVideoUrlList(netVideo, pageType));
+                                break;
+                            default:
+                                data.putInt("MessageType",MessageType.OpenVideo.ordinal());
+                                data.putString("VideoUrl",NetVideoHelper.getVideoUrlFromThird(netVideo.getVideoUrl()));
+                                break;
+                        }
                         msg.setData(data);
-                        videoUrlList.clear();
-                        videoUrlList.addAll(NetVideoHelper.getNetVideoUrlList(netVideo, pageType));
                         handler.sendMessage(msg);
                     }
                 }).start();
@@ -245,7 +273,7 @@ public class MainActivity extends AppCompatActivity
             public void run() {
                 Message msg = new Message();
                 Bundle data = new Bundle();
-                data.putInt("MessageType",MessageType.YouKuSearch.ordinal());
+                data.putInt("MessageType",MessageType.Search.ordinal());
                 msg.setData(data);
                 NetVideoList.addAll(NetVideoHelper.getNetVideoListByHome(pageType));
                 handler.sendMessage(msg);
@@ -259,7 +287,7 @@ public class MainActivity extends AppCompatActivity
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (MessageType.values()[(int)(msg.getData().get("MessageType"))]){
-                case YouKuSearch:
+                case Search:
                     ListView videoListView = currentView.findViewById(R.id.listview_youku);
                     MyListAdapter la = (MyListAdapter) videoListView.getAdapter();
                     la.notifyDataSetChanged();
@@ -278,7 +306,7 @@ public class MainActivity extends AppCompatActivity
                                     if(i % 11 == 0 || i == NetVideoList.size() - 1){
                                         Message msg = new Message();
                                         Bundle data = new Bundle();
-                                        data.putInt("MessageType",MessageType.YouKuImg.ordinal());
+                                        data.putInt("MessageType",MessageType.Img.ordinal());
                                         msg.setData(data);
                                         handler.sendMessage(msg);
                                     }
@@ -287,7 +315,7 @@ public class MainActivity extends AppCompatActivity
                         }
                     }).start();
                     break;
-                case YouKuUrl:
+                case Url:
                     GifImageView loading1 = currentView.findViewById(R.id.loading_youku);
                     loading1.setVisibility(View.INVISIBLE);
                     if (videoUrlList.size() > 0){
@@ -319,10 +347,20 @@ public class MainActivity extends AppCompatActivity
                                 Toast.LENGTH_SHORT).show();
                     }
                     break;
-                case YouKuImg:
+                case Img:
                     ListView videoListView1 = currentView.findViewById(R.id.listview_youku);
-                    MyListAdapter la1 = (MyListAdapter) videoListView1.getAdapter();
-                    la1.notifyDataSetChanged();
+                    if (videoListView1 != null){
+                        MyListAdapter la1 = (MyListAdapter) videoListView1.getAdapter();
+                        la1.notifyDataSetChanged();
+                    }
+                    break;
+                case OpenVideo:
+                    GifImageView loading2 = currentView.findViewById(R.id.loading_youku);
+                    loading2.setVisibility(View.INVISIBLE);
+                    Intent intent = new Intent(MainActivity.this, VideoPlayActivity.class);
+                    intent.putExtra("VideoUrl", (String)(msg.getData().get("VideoUrl")));
+                    intent.putExtra("VideoTitle", (String)(msg.getData().get("VideoTitle")));
+                    startActivity(intent);
                     break;
                 case ExitApp:
                     isExit = false;
@@ -356,5 +394,23 @@ public class MainActivity extends AppCompatActivity
             System.exit(0);
         }
     }
-
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            float mOldX = e1.getX(), mOldY = e1.getY();
+            int y = (int) e2.getRawY();
+            int x = (int) e2.getRawX();
+            Display disp = (MainActivity.this).getWindowManager().getDefaultDisplay();
+            int windowWidth = disp.getWidth();
+            int windowHeight = disp.getHeight();
+            DrawerLayout drawer = findViewById(R.id.drawer_layout);
+                if (x > mOldX){
+                    if (!drawer.isDrawerOpen(GravityCompat.START)) {
+                        drawer.openDrawer(GravityCompat.START);
+                    }
+                    return true;
+                }
+            return false;
+        }
+    }
 }

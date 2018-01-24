@@ -41,11 +41,13 @@ public class YouKuAnalyze {
             }else{
                 imgUrl = "";
             }
+            String herf = link.attr("href").replaceFirst("//", "http://");
+            //herf = herf.replaceAll("([\\s\\S]*)id_", "").replace(".html","").replaceAll("==([\\s\\S]*)$","") + "==";
             list.add(new NetVideo(
                     link.attr("title"),
                     "",
                     imgUrl,
-                    link.attr("href").replaceFirst("//", "http://"),
+                    herf,
                     "1" ));
         }
         return list;
@@ -98,12 +100,13 @@ public class YouKuAnalyze {
             Element item = yk_result_v.select("a").first();
             Element img = yk_result_v.getElementsByTag("img").first();
             Element subTitle = yk_result_v.getElementsByClass("v-desc-col").first();
-
+            String herf = item.attr("href").replaceFirst("//", "http://");
+            //herf = herf.replaceAll("([\\s\\S]*)id_", "").replace(".html","").replaceAll("==([\\s\\S]*)$","") + "==";
             list.add(new NetVideo(
                     item.attr("title"),
                     subTitle.text(),
                     img.attr("src").replaceFirst("//", "http://"),
-                    item.attr("href").replaceFirst("//", "http://"),
+                    herf,
                     ""));
         }
         return list;

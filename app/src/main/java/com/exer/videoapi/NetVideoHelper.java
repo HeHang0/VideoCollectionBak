@@ -9,7 +9,11 @@ import com.exer.videoapi.anlysis.CloudMusicAnalyze;
 import com.exer.videoapi.anlysis.IQiYiAnalyze;
 import com.exer.videoapi.anlysis.QQLiveAnalyze;
 import com.exer.videoapi.anlysis.YouKuAnalyze;
+import com.exer.widgets.Tools;
 import com.exer.widgets.VideoUrlItem;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -64,13 +68,13 @@ public class NetVideoHelper {
             put(NetVideoFrom.CloudMusic,"http://music.163.com/api/cloudsearch/get/web?s=%s&limit=50&type=1014&offset=0");
         }
     };
-    private static Map<NetVideoFrom, String> videoUrlApi = new HashMap<NetVideoFrom, String>(){
+    public static Map<NetVideoFrom, String> videoUrlApi = new HashMap<NetVideoFrom, String>(){
         {
             put(NetVideoFrom.Youku, "http://api.v2.flvurl.cn/parse?single-only=true&appid=6170b6db0a881c18389f47d6d994340e&type=vod&url=%s");
             put(NetVideoFrom.QQLive, "http://api.v2.flvurl.cn/parse?single-only=true&appid=6170b6db0a881c18389f47d6d994340e&type=vod&url=%s");
             put(NetVideoFrom.IQiYi, "http://api.v2.flvurl.cn/parse?single-only=true&appid=6170b6db0a881c18389f47d6d994340e&type=vod&url=%s");
             put(NetVideoFrom.CloudMusic,"http://music.163.com/api/mv/detail?id=%s&type=mp4");
-            put(NetVideoFrom.Bilibili, "http://api.v2.flvurl.cn/parse?single-only=true&appid=6170b6db0a881c18389f47d6d994340e&type=vod&url=https://www.bilibili.com/video/av%s");
+            put(NetVideoFrom.Bilibili, "http://api.v2.flvurl.cn/parse?single-only=true&appid=6170b6db0a881c18389f47d6d994340e&type=vod&url=%s");
         }
     };
     public static Bitmap getURLimage(String url) {
@@ -128,7 +132,12 @@ public class NetVideoHelper {
     }
 
     public static List<NetVideo> getNetVideoList(String searchStr, NetVideoFrom type) {
-        String api = searchAPI.get(type);
+        String api = "";
+        if (type == NetVideoFrom.Bilibili){
+            api = BilibiliAnalyze.getSearchUrl(searchStr);
+        }else{
+            api = searchAPI.get(type);
+        }
         String retStr = "";
         try {
             switch (type){
@@ -138,9 +147,9 @@ public class NetVideoHelper {
                 case QQLive:
                     retStr = sendDataByGet(String.format(api, URLEncoder.encode(searchStr, "utf-8")), "Android");
                     break;
-//                case Bilibili:
-//                    retStr = sendDataByGet(String.format(api, URLEncoder.encode(searchStr, "utf-8")), "Android");
-//                    break;
+                case Bilibili:
+                    retStr = sendDataByGet(api, "Android");
+                    break;
                 case IQiYi:
                     retStr = sendDataByGet(String.format(api, URLEncoder.encode(searchStr, "utf-8")), "Win32");
                     break;
@@ -201,6 +210,8 @@ public class NetVideoHelper {
             case CloudMusic:
                 list = CloudMusicAnalyze.GetNetVideoList(retStr);
                 break;
+            case Bilibili:
+                list = BilibiliAnalyze.getNetVideoList(retStr);
         }
         return list;
     }
@@ -276,8 +287,23 @@ public class NetVideoHelper {
         }
         return file.getPath()+"/"+System.currentTimeMillis() + imgUrl.substring(imgUrl.length()-10,imgUrl.length()-4) +".png";
     }
-//    https://openapi.youku.com/v2/searches/video/by_keyword.json?count=20&client_id=53e6cc67237fc59a&page=1&keyword=%E8%A2%81%E8%85%BE%E9%A3%9E
-//    URL url = new URL("http://images.csdn.net/20130609/zhuanti.jpg");
-//    mImageView.setImageBitmap(BitmapFactory.decodeStream(url.openStream()));
 
+    public static String getVideoUrlFromThird(String url){
+        if (url.contains("m.youku.com/video")){
+            url = url.replace("m.youku.com/video","v.youku.com/v_show");
+        }
+        String anaStr = sendDataByPost("http://www.fanjuba.com/ckmov/?url=" + url);
+        String post = Tools.getStrWithRegular("post\\(\"(.*)\"\\,\\s+\\{",anaStr);
+        String time = Tools.getStrWithRegular("time\":\"(\\w+)\"",anaStr);
+        String key = Tools.getStrWithRegular("key\": \"(\\w+)\"",anaStr);
+        String type = Tools.getStrWithRegular("type\": \"(\\w+)\"",anaStr);
+        anaStr = sendDataByPost("http://www.fanjuba.com/ckmov/" + post + "?time=" + time + "&key=" + key + "&url=" + url + "&type=" + type);
+        String videoUrl = "";
+        try {
+            videoUrl = new JSONObject(anaStr).getString("url");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return videoUrl;
+    }
 }

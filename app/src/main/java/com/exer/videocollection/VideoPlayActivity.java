@@ -3,6 +3,8 @@ package com.exer.videocollection;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,6 +23,7 @@ import com.exer.widgets.Tools;
 
 import io.vov.vitamio.MediaPlayer;
 import io.vov.vitamio.Vitamio;
+import io.vov.vitamio.utils.Log;
 import io.vov.vitamio.utils.StringUtils;
 import io.vov.vitamio.widget.VideoView;
 
@@ -104,6 +107,9 @@ public class VideoPlayActivity extends Activity  {
                             stopLoadingAnimator();
                             startPlay();
                             mediaController.mRoot.findViewById(R.id.mediacontroller_play_pause).setEnabled(true);
+                            mediaController.mRoot.findViewById(R.id.mediacontroller_previous).setEnabled(true);
+                            mediaController.mRoot.findViewById(R.id.mediacontroller_next).setEnabled(true);
+                            mediaController.mRoot.findViewById(R.id.mediacontroller_screen_fit).setEnabled(true);
                             break;
                         case MediaPlayer.MEDIA_INFO_DOWNLOAD_RATE_CHANGED:
                             //显示 下载速度
@@ -118,6 +124,26 @@ public class VideoPlayActivity extends Activity  {
             mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
+                    onDestroy();
+                    finish();
+                }
+            });
+            mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
+                    Log.d("Error: %d, %d", framework_err, impl_err);
+                    if (mediaController != null)
+                        mediaController.hide();
+
+                    int message = framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK ? getResources().getIdentifier("VideoView_error_text_invalid_progressive_playback", "string", VideoPlayActivity.this.getPackageName()): getResources().getIdentifier("VideoView_error_text_unknown", "string", VideoPlayActivity.this.getPackageName());
+
+                    new AlertDialog.Builder(VideoPlayActivity.this).setTitle(getResources().getIdentifier("VideoView_error_title", "string", VideoPlayActivity.this.getPackageName())).setMessage(message).setPositiveButton(getResources().getIdentifier("VideoView_error_button", "string", VideoPlayActivity.this.getPackageName()), new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+                            onDestroy();
+                            finish();
+                        }
+                    }).setCancelable(false).show();
+                    return true;
                 }
             });
         }
@@ -232,7 +258,7 @@ public class VideoPlayActivity extends Activity  {
         }
         return super.onKeyDown(keyCode, event);
     }
-    private void exit() {
+    public void exit() {
         if (!isExit) {
             isExit = true;
             Toast.makeText(getApplicationContext(), "再按一次退出播放",
