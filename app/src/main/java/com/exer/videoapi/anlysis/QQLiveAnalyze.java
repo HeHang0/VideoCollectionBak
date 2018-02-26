@@ -1,6 +1,8 @@
 package com.exer.videoapi.anlysis;
 
 import com.exer.videoapi.NetVideo;
+import com.exer.videoapi.NetVideoHelper;
+import com.exer.widgets.Tools;
 import com.exer.widgets.VideoUrlItem;
 
 import org.json.JSONArray;
@@ -130,5 +132,31 @@ public class QQLiveAnalyze {
         }
 
         return list;
+    }
+
+    public static String getTitleByUrl(String url) {
+        String title = "";
+        //String vid = Tools.getStrWithRegular("vid=([\\s\\S]+)&",url).length() > 0 ? Tools.getStrWithRegular("vid=([\\s\\S][^']+)&",url) : Tools.getStrWithRegular("vid=([\\s\\S][^']+)[^&]$",url);
+        if (!url.contains("/x/"))
+            url = url.replace("http://m.v.qq.com/","https://m.v.qq.com/x/");
+        else
+            url = url.replace("http://m.v.qq.com/x/","https://m.v.qq.com/x/");
+        String anaStr = NetVideoHelper.sendDataByGet(url, "Win32");
+        title = Tools.getStrWithRegular("\"shareSingleTitle\":\"([\\s\\S][^\"]+)\"",anaStr);
+        return title;
+    }
+
+    public static boolean checkVideoUrl(String url) {
+        return url.contains("vid=") || url.contains("/x/cover");
+    }
+
+    public static String getPageLoadedJs() {
+        return "";
+    }
+
+
+    private static String shieldUrls = "";
+    public static boolean isShield(String url) {
+        return  shieldUrls.contains(url) || url.contains(".apk");
     }
 }

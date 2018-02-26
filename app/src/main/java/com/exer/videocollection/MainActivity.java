@@ -7,9 +7,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
@@ -30,18 +32,31 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
+import android.webkit.ValueCallback;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.exer.videoapi.NetVideo;
 import com.exer.videoapi.NetVideoFrom;
 import com.exer.videoapi.NetVideoHelper;
+import com.exer.videoapi.anlysis.YouTubeAnalyze;
+import com.exer.widgets.ClearEditText;
 import com.exer.widgets.MyDialogAdapter;
 import com.exer.widgets.MyListAdapter;
 import com.exer.widgets.MyMediaController;
+import com.exer.widgets.PlayerView;
 import com.exer.widgets.Tools;
 import com.exer.widgets.VideoUrlItem;
 
@@ -95,7 +110,22 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         View navheaderView = navigationView.getHeaderView(0);
         navheaderView.setOnClickListener(this);
-
+        TextView subbtn = findViewById(R.id.test_url);
+        subbtn.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event){
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    String ss = v.getText().toString();
+                    if (!ss.contains("http")) ss = Environment.getExternalStorageDirectory().getPath() + "/" + ss;
+                    Intent intent = new Intent(MainActivity.this, VideoPlayActivity.class);
+                    intent.putExtra("VideoUrl", ss);
+                    intent.putExtra("VideoTitle", "测试");
+                    startActivity(intent);
+                    return true;
+                }
+                return false;
+            }
+        });
+        subbtn.setOnClickListener(this);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
@@ -145,7 +175,6 @@ public class MainActivity extends AppCompatActivity
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.nav_header:
-
                 ((Toolbar)findViewById(R.id.toolbar)).setTitle("VideoCollection");
                 coordinatorLayout.removeView(currentView);
                 LayoutInflater mInflater = LayoutInflater.from(this);
@@ -154,6 +183,13 @@ public class MainActivity extends AppCompatActivity
                 DrawerLayout drawer = findViewById(R.id.drawer_layout);
                 drawer.closeDrawer(GravityCompat.START);
                 break;
+//            case R.id.submit_test_url:
+//                String url = ((ClearEditText)findViewById(R.id.test_url)).getText().toString();
+//                Intent intent = new Intent(MainActivity.this, VideoPlayActivity.class);
+//                intent.putExtra("VideoUrl", url);
+//                intent.putExtra("VideoTitle", "测试");
+//                startActivity(intent);
+//                break;
         }
     }
     @SuppressWarnings("StatementWithEmptyBody")
@@ -161,27 +197,43 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
+        if (webView != null){
+            setCookies();
+            webView.destroy();
+            webView = null;
+        }
         switch (id){
+            case R.id.nav_live:
+                ((Toolbar)findViewById(R.id.toolbar)).setTitle("直播");
+                OpenPlatePage(NetVideoFrom.Live);
+                break;
             case R.id.nav_youku:
                 ((Toolbar)findViewById(R.id.toolbar)).setTitle("优酷");
-                OpenPlatePage(NetVideoFrom.Youku);
-                break;
-            case R.id.nav_qqlive:
-                ((Toolbar)findViewById(R.id.toolbar)).setTitle("腾讯视频");
-                OpenPlatePage(NetVideoFrom.QQLive);
+                //OpenPlatePage(NetVideoFrom.Youku);
+                OpenWebViewPage(NetVideoFrom.Youku);
                 break;
             case R.id.nav_iqiyi:
                 ((Toolbar)findViewById(R.id.toolbar)).setTitle("爱奇艺");
-                OpenPlatePage(NetVideoFrom.IQiYi);
+//                OpenPlatePage(NetVideoFrom.IQiYi);
+                OpenWebViewPage(NetVideoFrom.IQiYi);
                 break;
             case R.id.nav_cloundmusic:
                 ((Toolbar)findViewById(R.id.toolbar)).setTitle("云音乐");
                 OpenPlatePage(NetVideoFrom.CloudMusic);
                 break;
+            case R.id.nav_qqlive:
+                ((Toolbar)findViewById(R.id.toolbar)).setTitle("腾讯视频");
+//                OpenPlatePage(NetVideoFrom.QQLive);
+                OpenWebViewPage(NetVideoFrom.QQLive);
+                break;
             case R.id.nav_bilibili:
                 ((Toolbar)findViewById(R.id.toolbar)).setTitle("哔哩哔哩");
-                OpenPlatePage(NetVideoFrom.Bilibili);
+//                OpenPlatePage(NetVideoFrom.Bilibili);
+                OpenWebViewPage(NetVideoFrom.Bilibili);
+                break;
+            case R.id.nav_youtube:
+                ((Toolbar)findViewById(R.id.toolbar)).setTitle("YouTube");
+                OpenWebViewPage(NetVideoFrom.YouTube);
                 break;
             case R.id.nav_share:
                 Toast.makeText(getApplicationContext(), "Share",
@@ -194,47 +246,211 @@ public class MainActivity extends AppCompatActivity
             default:
                 break;
         }
-
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
         return true;
     }
     private NetVideoFrom pageType;
-    private void OpenPlatePage(NetVideoFrom type){
+    private WebView webView;
+    private String youtubeVid;
+    @SuppressLint({"SetJavaScriptEnabled", "ClickableViewAccessibility"})
+    private void OpenWebViewPage(NetVideoFrom type){
+        pageType = type;
+        coordinatorLayout.removeView(currentView);
+        LayoutInflater mInflater = LayoutInflater.from(this);
+        mInflater.inflate(R.layout.webview_page_layout,coordinatorLayout);
+        currentView = findViewById(R.id.findVideo_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        if (webView != null){
+            setCookies();
+            webView.destroy();
+            webView = null;
+        }
+        webView = currentView.findViewById(R.id.webView);
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        //设置 缓存模式
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+        // 开启 DOM storage API 功能
+        settings.setDomStorageEnabled(true);
+        settings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NARROW_COLUMNS);
+        settings.setUseWideViewPort(true);
+        webView.loadUrl(NetVideoHelper.WebViewUrlAPI.get(type));
+
+        final GestureDetector gestureDetector = new GestureDetector(MainActivity.this, new GestureListener());
+        webView.setClickable(true);
+        webView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (gestureDetector.onTouchEvent(event))
+                    return true;
+                return false;
+            }
+        });
+
+        webView.setWebViewClient(new WebViewClient(){
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                super.onReceivedError(view, errorCode, description, failingUrl);
+                if (errorCode == ERROR_TIMEOUT || errorCode == ERROR_HOST_LOOKUP || errorCode == ERROR_CONNECT  || errorCode == ERROR_FAILED_SSL_HANDSHAKE){
+                    view.loadUrl("file:///android_asset/404.html");
+                }
+            }
+
+            @Override
+            public void onLoadResource(WebView view, String url) {
+                super.onLoadResource(view, url);
+//                if (pageType == NetVideoFrom.YouTube && NetVideoHelper.checkWebViewUrl(url, pageType)){
+//                    youtubeVid = Tools.getStrWithRegular("/watch\\?[\\s\\S]+v=([\\s\\S]+)",url);;
+//                    ProgressBar loading2 = currentView.findViewById(R.id.loading_youku);
+//                    loading2.setVisibility(View.VISIBLE);
+//                    webView.loadUrl("https://www.findyoutube.net/");
+//                }else {
+//                    super.onLoadResource(view, url);
+//                }
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                return super.shouldInterceptRequest(view,url);
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                return shouldOverrideUrlLoading(view, request.getUrl().toString());
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (NetVideoHelper.checkWebViewUrl(url, pageType)) {
+                    Toast.makeText(MainActivity.this, "点击视频链接" + url,
+                            Toast.LENGTH_SHORT).show();
+                    ProgressBar loading2 = currentView.findViewById(R.id.loading_youku);
+                    loading2.setVisibility(View.VISIBLE);
+                    new MyThread(url) {
+                        @Override
+                        public void run() {
+                            Message msg = new Message();
+                            Bundle data = new Bundle();
+                            data.putString("VideoTitle",NetVideoHelper.getVideoTitleByUrl(param, pageType));
+                            data.putString("VideoUrl",NetVideoHelper.getVideoUrl(param, pageType));
+                            data.putInt("MessageType",MessageType.OpenVideo.ordinal());
+                            msg.setData(data);
+                            handler.sendMessage(msg);
+                        }
+                    }.start();
+                    return true;
+                }else if(NetVideoHelper.getIsShield(url, pageType)){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                if (!(pageType == NetVideoFrom.YouTube && url.contains("findyoutube.net"))){
+                    ProgressBar loading2 = currentView.findViewById(R.id.loading_youku);
+                    loading2.setVisibility(View.INVISIBLE);
+                }
+                Toast.makeText(MainActivity.this, "页面开始加载！" + url,
+                        Toast.LENGTH_SHORT).show();
+                super.onPageStarted(view, url, favicon);
+            }
+
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                Toast.makeText(MainActivity.this, "页面加载完成！" + url,
+                        Toast.LENGTH_SHORT).show();
+                webView.loadUrl("javascript:" + NetVideoHelper.getPageLoadedJs(pageType));
+                super.onPageFinished(view, url);
+//                if (pageType == NetVideoFrom.YouTube && url.contains("findyoutube.net")){
+//                    webView.loadUrl("javascript:function getYoutubeUrlHtml(){var str='';$.ajax({type:'post',url:'https://www.findyoutube.net/result',data:{url:'https://www.youtube.com/watch?v=" + youtubeVid + "'},async:false,success:function(data){str=data;}});return str;}");
+//                    webView.evaluateJavascript("javascript:getYoutubeUrlHtml()", new ValueCallback<String>() {
+//                        @Override
+//                        public void onReceiveValue(String value) {
+//                            value = value.replace("&amp;","&").replace("\\u003C","<");
+//                            String[] info = YouTubeAnalyze.getVideoInfoByHtml(value);
+//                            if (info.length == 2){
+//                                new MyThread(info[0] + "%%%%%" + info[1]) {
+//                                    @Override
+//                                    public void run() {
+//                                        String[] info = param.split("%%%%%");
+//                                        if (info.length == 2){
+//                                            Message msg = new Message();
+//                                            Bundle data = new Bundle();
+//                                            data.putString("VideoTitle",info[0]);
+//                                            data.putString("VideoUrl",info[1]);
+//                                            data.putInt("MessageType",MessageType.OpenVideo.ordinal());
+//                                            msg.setData(data);
+//                                            handler.sendMessage(msg);
+//                                        }
+//                                    }
+//                                }.start();
+//                            }
+//                            System.out.println(value);
+//                            webView.goBack();
+//                            webView.goBack();
+//                            ProgressBar loading2 = currentView.findViewById(R.id.loading_youku);
+//                            loading2.setVisibility(View.INVISIBLE);
+//                        }
+//                    });
+//                }
+            }
+
+            @Override
+            public void onPageCommitVisible(WebView view, String url) {
+                super.onPageCommitVisible(view,url);
+            }
+        });
+    }
+    public void setCookies(){
+        CookieSyncManager.createInstance(this);
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
+        CookieSyncManager.getInstance().sync();
+    }
+    private void OpenPlatePage(final NetVideoFrom type){
         pageType = type;
         coordinatorLayout.removeView(currentView);
         LayoutInflater mInflater = LayoutInflater.from(this);
         mInflater.inflate(R.layout.youku,coordinatorLayout);
         currentView = findViewById(R.id.youku_layout);
-        TextView searchYouku = currentView.findViewById(R.id.search_text_youku);
-        searchYouku.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event){
-                if (actionId == EditorInfo.IME_ACTION_SEND) {
-                    SearchStr = v.getText().toString();
-                    Tools.HideKeyboard(v);
-                    v.clearFocus();
-                    v.setFocusable(false);
-                    v.setFocusableInTouchMode(false);
-                    NetVideoList.clear();
-                    ListView videoListView = currentView.findViewById(R.id.listview_youku);
-                    MyListAdapter la = (MyListAdapter) videoListView.getAdapter();
-                    la.notifyDataSetChanged();
-                    new Thread(new Runnable() {
-                        public void run() {
-                            Message msg = new Message();
-                            Bundle data = new Bundle();
-                            data.putInt("MessageType",MessageType.Search.ordinal());
-                            msg.setData(data);
-                            NetVideoList.addAll(NetVideoHelper.getNetVideoList(SearchStr, pageType));
-                            handler.sendMessage(msg);
-                        }
-                    }).start();
-                    GifImageView loading = currentView.findViewById(R.id.loading_youku);
-                    loading.setVisibility(View.VISIBLE);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        if (type != NetVideoFrom.Live){
+            TextView searchYouku = currentView.findViewById(R.id.search_text_youku);
+            searchYouku.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                public boolean onEditorAction(TextView v, int actionId, KeyEvent event){
+                    if (actionId == EditorInfo.IME_ACTION_SEND) {
+                        SearchStr = v.getText().toString();
+                        Tools.HideKeyboard(v);
+                        v.clearFocus();
+                        v.setFocusable(false);
+                        v.setFocusableInTouchMode(false);
+                        NetVideoList.clear();
+                        ListView videoListView = currentView.findViewById(R.id.listview_youku);
+                        MyListAdapter la = (MyListAdapter) videoListView.getAdapter();
+                        la.notifyDataSetChanged();
+                        new Thread(new Runnable() {
+                            public void run() {
+                                Message msg = new Message();
+                                Bundle data = new Bundle();
+                                data.putInt("MessageType",MessageType.Search.ordinal());
+                                msg.setData(data);
+                                NetVideoList.addAll(NetVideoHelper.getNetVideoList(SearchStr, pageType));
+                                handler.sendMessage(msg);
+                            }
+                        }).start();
+                        ProgressBar loading = currentView.findViewById(R.id.loading_youku);
+                        loading.setVisibility(View.VISIBLE);
+                    }
+                    return false;
                 }
-                return false;
-            }
-        });
+            });
+        }else{
+            TextView searchYouku = currentView.findViewById(R.id.search_text_youku);
+            searchYouku.setVisibility(View.GONE);
+        }
         ListView videoListView = currentView.findViewById(R.id.listview_youku);
         NetVideoList.clear();
         MyListAdapter adapter = new MyListAdapter(MainActivity.this, NetVideoList);
@@ -242,7 +458,7 @@ public class MainActivity extends AppCompatActivity
         videoListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                GifImageView loading = currentView.findViewById(R.id.loading_youku);
+                ProgressBar loading = currentView.findViewById(R.id.loading_youku);
                 loading.setVisibility(View.VISIBLE);
                 netVideo = NetVideoList.get(i);
                 new Thread(new Runnable() {
@@ -251,13 +467,24 @@ public class MainActivity extends AppCompatActivity
                         Bundle data = new Bundle();
                         data.putString("VideoTitle",netVideo.getTitle());
                         switch (pageType){
+//                                data.putInt("MessageType",MessageType.OpenVideo.ordinal());
+//                                data.putString("VideoUrl",NetVideoHelper.getVideoUrlFrom163ren(netVideo.getVideoUrl()));
+//                                break;
+                            case Live:
+                                data.putInt("MessageType",MessageType.OpenVideo.ordinal());
+                                data.putString("VideoUrl",netVideo.getVideoUrl());
+                                break;
                             case Bilibili:
+                                data.putInt("MessageType",MessageType.OpenVideo.ordinal());
+                                data.putString("VideoUrl",NetVideoHelper.getVideoUrlFromBiliBili(netVideo.getVideoUrl()));
+                                break;
                             case CloudMusic:
-                            case IQiYi:
                                 data.putInt("MessageType",MessageType.Url.ordinal());
                                 videoUrlList.clear();
                                 videoUrlList.addAll(NetVideoHelper.getNetVideoUrlList(netVideo, pageType));
                                 break;
+                            case Youku:
+                            case IQiYi:
                             default:
                                 data.putInt("MessageType",MessageType.OpenVideo.ordinal());
                                 data.putString("VideoUrl",NetVideoHelper.getVideoUrlFromThird(netVideo.getVideoUrl()));
@@ -291,7 +518,7 @@ public class MainActivity extends AppCompatActivity
                     ListView videoListView = currentView.findViewById(R.id.listview_youku);
                     MyListAdapter la = (MyListAdapter) videoListView.getAdapter();
                     la.notifyDataSetChanged();
-                    GifImageView loading = currentView.findViewById(R.id.loading_youku);
+                    ProgressBar loading = currentView.findViewById(R.id.loading_youku);
                     loading.setVisibility(View.INVISIBLE);
 
                     TextView search_text_youku = currentView.findViewById(R.id.search_text_youku);
@@ -303,7 +530,7 @@ public class MainActivity extends AppCompatActivity
                                 NetVideo nv = NetVideoList.get(i);
                                 if (nv.getImg() == null && !(nv.getImgUrl() == null || nv.getImgUrl().isEmpty())){
                                     nv.setImg(Tools.getImageThumbnail(nv.getImgUrl(), 320, 180));
-                                    if(i % 11 == 0 || i == NetVideoList.size() - 1){
+                                    if ((i+1) % 6 == 0 || (i+1) == NetVideoList.size()){
                                         Message msg = new Message();
                                         Bundle data = new Bundle();
                                         data.putInt("MessageType",MessageType.Img.ordinal());
@@ -316,7 +543,7 @@ public class MainActivity extends AppCompatActivity
                     }).start();
                     break;
                 case Url:
-                    GifImageView loading1 = currentView.findViewById(R.id.loading_youku);
+                    ProgressBar loading1 = currentView.findViewById(R.id.loading_youku);
                     loading1.setVisibility(View.INVISIBLE);
                     if (videoUrlList.size() > 0){
                         final MyDialogAdapter mdAdapter = new MyDialogAdapter(MainActivity.this, videoUrlList, (String)(msg.getData().get("VideoTitle")));
@@ -327,7 +554,7 @@ public class MainActivity extends AppCompatActivity
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 dialogInterface.dismiss();
                                 if (!isPlayVideoInBrowser){
-                                    Intent intent = new Intent(MainActivity.this, VideoPlayActivity.class);
+                                    Intent intent = new Intent(MainActivity.this, IJKVideoPlayActivity.class);
                                     intent.putExtra("VideoUrl", videoUrlList.get(i).getUrl());
                                     intent.putExtra("VideoTitle", mdAdapter.getVideoTitle());
                                     startActivity(intent);
@@ -355,9 +582,9 @@ public class MainActivity extends AppCompatActivity
                     }
                     break;
                 case OpenVideo:
-                    GifImageView loading2 = currentView.findViewById(R.id.loading_youku);
+                    ProgressBar loading2 = currentView.findViewById(R.id.loading_youku);
                     loading2.setVisibility(View.INVISIBLE);
-                    Intent intent = new Intent(MainActivity.this, VideoPlayActivity.class);
+                    Intent intent = new Intent(MainActivity.this, IJKVideoPlayActivity.class);
                     intent.putExtra("VideoUrl", (String)(msg.getData().get("VideoUrl")));
                     intent.putExtra("VideoTitle", (String)(msg.getData().get("VideoTitle")));
                     startActivity(intent);
@@ -394,23 +621,64 @@ public class MainActivity extends AppCompatActivity
             System.exit(0);
         }
     }
+
+    private abstract class MyThread extends Thread{
+        public String param;
+        public MyThread(String param)
+        {
+            this.param = param;
+        }
+        public abstract void run();
+    }
+
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+//        @Override
+//        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+//            float mOldX = e1.getX(), mOldY = e1.getY();
+//            int y = (int) e2.getRawY();
+//            int x = (int) e2.getRawX();
+//            Display disp = (MainActivity.this).getWindowManager().getDefaultDisplay();
+//            int windowWidth = disp.getWidth();
+//            int windowHeight = disp.getHeight();
+//            DrawerLayout drawer = findViewById(R.id.drawer_layout);
+//                if (x > mOldX){
+//                    if (!drawer.isDrawerOpen(GravityCompat.START)) {
+//                        drawer.openDrawer(GravityCompat.START);
+//                    }
+//                    return true;
+//                }
+//            return false;
+//        }
+
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             float mOldX = e1.getX(), mOldY = e1.getY();
-            int y = (int) e2.getRawY();
-            int x = (int) e2.getRawX();
-            Display disp = (MainActivity.this).getWindowManager().getDefaultDisplay();
-            int windowWidth = disp.getWidth();
-            int windowHeight = disp.getHeight();
-            DrawerLayout drawer = findViewById(R.id.drawer_layout);
-                if (x > mOldX){
-                    if (!drawer.isDrawerOpen(GravityCompat.START)) {
-                        drawer.openDrawer(GravityCompat.START);
+            float deltaY = mOldY - e2.getY();
+            float deltaX = mOldX - e2.getX();
+            int screenWidth = Tools.getScreenSize(MainActivity.this)[0];
+            int screenHeight = Tools.getScreenSize(MainActivity.this)[1];
+            if (Math.abs(-deltaX / screenWidth) > 0.03 && Math.abs(-deltaY / screenHeight) < 0.015){
+                if (-deltaX / screenWidth < 0){
+                    if (webView != null){
+                        webView.goForward();
                     }
-                    return true;
+                    //Toast.makeText(MainActivity.this, "向右", Toast.LENGTH_SHORT).show();
+                }else{
+                    if (webView != null){
+                        webView.goBack();
+                    }
+                    //Toast.makeText(MainActivity.this, "向左", Toast.LENGTH_SHORT).show();
                 }
-            return false;
+            }
+            return super.onScroll(e1, e2, distanceX, distanceY);
+        }
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            if (webView != null){
+                webView.loadUrl("javascript:" + NetVideoHelper.getPageLoadedJs(pageType));
+            }
+            return super.onDown(e);
         }
     }
 }

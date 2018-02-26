@@ -41,4 +41,12 @@ dependencies {
     compile(name:'android-gif-drawable-1.2.10', ext:'aar')
     compile project(path: ':vitamio')
     compile 'org.jetbrains:annotations-java5:15.0'
+    compile files('libs/glide-4.5.0.jar')
+    compile project(path: ':ijkplayer-java')
+    compile project(':ijkplayer-java')
+    compile project(':ijkplayer-armv5')
+    compile project(':ijkplayer-armv7a')
+    compile project(':ijkplayer-arm64')
+    compile project(':ijkplayer-x86')
+    compile project(':ijkplayer-x86_64')
 }

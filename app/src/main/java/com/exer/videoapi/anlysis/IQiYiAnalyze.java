@@ -1,6 +1,8 @@
 package com.exer.videoapi.anlysis;
 
 import com.exer.videoapi.NetVideo;
+import com.exer.videoapi.NetVideoHelper;
+import com.exer.widgets.Tools;
 import com.exer.widgets.VideoUrlItem;
 
 import org.json.JSONArray;
@@ -129,5 +131,30 @@ public class IQiYiAnalyze {
         }
 
         return list;
+    }
+
+    public static String getTitleByUrl(String url) {
+        String title = "";
+        String vid = Tools.getStrWithRegular("v_([\\s\\S]+).html",url);
+        String anaStr = NetVideoHelper.sendDataByGet("http://expand.video.iqiyi.com/api/fb?apiKey=71c300df4a7f4e89a43d8e19e5458e6f&rec=0&playurl=http://www.iqiyi.com/v_" + vid + ".html", "Win32");
+        try {
+            title = new JSONObject(anaStr).getJSONObject("data").getString("title");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return title;
+    }
+
+    public static boolean checkVideoUrl(String url) {
+            return url.contains(".com/v_");
+    }
+
+    public static String getPageLoadedJs() {
+        return "function closeAd(){if($('.header-app').length > 0) $('.header-app').css('display','none !important');if($('.m-downiqy').length > 0) $('.m-downiqy').css('display','none !important');if($('.m-guide.po-fixed.hide').length > 0) $('.m-guide.po-fixed.hide').css('display','none !important');} closeAd();";
+    }
+
+    private static String shieldUrls = "iqiyi://mobile/home?ftype=27&subtype=144,";
+    public static boolean isShield(String url){
+        return  shieldUrls.contains(url) || url.contains(".apk");
     }
 }

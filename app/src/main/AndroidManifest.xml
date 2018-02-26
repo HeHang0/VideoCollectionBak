@@ -3,7 +3,10 @@
     package="com.exer.videocollection">
 
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <application
         android:allowBackup="true"
         android:icon="@drawable/logo"
@@ -22,6 +25,11 @@
         </activity>
         <activity
             android:name=".VideoPlayActivity"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize"
+            />
+        <activity
+            android:name=".IJKVideoPlayActivity"
             android:screenOrientation="landscape"
             android:configChanges="orientation|screenSize"
             />

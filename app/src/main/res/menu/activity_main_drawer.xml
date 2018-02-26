@@ -5,6 +5,10 @@
 
     <group android:checkableBehavior="single" >
         <item
+            android:id="@+id/nav_live"
+            android:icon="@drawable/ic_menu_live"
+            android:title="直播" />
+        <item
             android:id="@+id/nav_youku"
             android:icon="@drawable/ic_menu_youku"
             android:title="优酷" />
@@ -20,6 +24,10 @@
             android:id="@+id/nav_cloundmusic"
             android:icon="@drawable/ic_menu_cloudmusic"
             android:title="云音乐" />
+        <item
+            android:id="@+id/nav_youtube"
+            android:icon="@drawable/ic_menu_youtube"
+            android:title="YouTube" />
         <item
             android:id="@+id/nav_bilibili"
             android:icon="@drawable/ic_menu_bilibili"

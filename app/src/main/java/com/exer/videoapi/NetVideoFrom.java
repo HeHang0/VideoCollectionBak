@@ -1,5 +1,5 @@
 package com.exer.videoapi;
 
 public enum NetVideoFrom{
-    QQLive,Youku,IQiYi,CloudMusic,Bilibili
+    Live,QQLive,Youku,IQiYi,CloudMusic,Bilibili,YouTube
 }

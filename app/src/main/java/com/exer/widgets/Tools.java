@@ -21,7 +21,9 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -113,11 +115,15 @@ public class Tools {
                 be = 1;
             }
             options.inSampleSize = be;
-            // 重新读入图片，读取缩放后的bitmap，注意这次要把options.inJustDecodeBounds 设为 false
-            bitmap = BitmapFactory.decodeStream(url.openStream(), null, options);
-            // 利用ThumbnailUtils来创建缩略图，这里要指定要缩放哪个Bitmap对象
-            bitmap = ThumbnailUtils.extractThumbnail(bitmap, width, height,
-                    ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
+            if (be == 1){
+                bitmap =  BitmapFactory.decodeStream(url.openStream());
+            }else{
+                // 重新读入图片，读取缩放后的bitmap，注意这次要把options.inJustDecodeBounds 设为 false
+                bitmap = BitmapFactory.decodeStream(url.openStream(), null, options);
+                // 利用ThumbnailUtils来创建缩略图，这里要指定要缩放哪个Bitmap对象
+                bitmap = ThumbnailUtils.extractThumbnail(bitmap, width, height,
+                        ThumbnailUtils.OPTIONS_RECYCLE_INPUT);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -152,14 +158,37 @@ public class Tools {
         return "";
     }
 
+    public static List<String> getStrListWithRegular(String pattern, String str){
+        List<String> list = new ArrayList<>();
+        Pattern p=Pattern.compile(pattern);
+        Matcher matcher = p.matcher(str);
+        while (matcher.find()) {
+            list.add(matcher.group());
+        }
+        return list;
+    }
+
     public static String md5Encoder(String str){
-        try {
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
-            String newstr=Base64.encodeToString(md5.digest(str.getBytes("utf-8")), Base64.DEFAULT);
-            return newstr;
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+        try
+        {
+            byte[] arrayOfByte = MessageDigest.getInstance("MD5").digest(str.getBytes());
+            str = "";
+            for (int i=0;i < arrayOfByte.length;i++)
+            {
+                String byteStr = Integer.toHexString(arrayOfByte[i] & 0xFF);
+                str += byteStr.length() == 1 ? "0" + byteStr : byteStr;
+            }
+            return str;
+        }
+        catch (NoSuchAlgorithmException e)
+        {
             e.printStackTrace();
         }
         return "";
+    }
+
+    public static int getStatusHeight(Context context){
+        int statusBarHeight = (int)Math.ceil(25 * context.getResources().getDisplayMetrics().density);
+        return statusBarHeight;
     }
 }

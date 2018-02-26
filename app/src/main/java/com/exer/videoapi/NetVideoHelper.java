@@ -7,8 +7,10 @@ import android.support.annotation.NonNull;
 import com.exer.videoapi.anlysis.BilibiliAnalyze;
 import com.exer.videoapi.anlysis.CloudMusicAnalyze;
 import com.exer.videoapi.anlysis.IQiYiAnalyze;
+import com.exer.videoapi.anlysis.LiveAnalyze;
 import com.exer.videoapi.anlysis.QQLiveAnalyze;
 import com.exer.videoapi.anlysis.YouKuAnalyze;
+import com.exer.videoapi.anlysis.YouTubeAnalyze;
 import com.exer.widgets.Tools;
 import com.exer.widgets.VideoUrlItem;
 
@@ -33,7 +35,7 @@ import java.util.Map;
 /**
  * Created by HeHang on 2018/1/8.
  */
-
+//https://bvd2.nl/8/download/download.php?url=https://www.youtube.com/watch?v=4iVW7OhZ0p8
 public class NetVideoHelper {
     public static Map<String, String> VideoUrlTypr = new HashMap<String, String>(){
         {
@@ -50,13 +52,22 @@ public class NetVideoHelper {
             put("ORIGINAL", "1080P");
         }
     };
+    public static Map<NetVideoFrom, String> WebViewUrlAPI = new HashMap<NetVideoFrom, String>(){
+        {
+            put(NetVideoFrom.Youku,    "http://www.youku.com");
+            put(NetVideoFrom.QQLive,   "http://m.v.qq.com");
+            put(NetVideoFrom.IQiYi,    "http://m.iqiyi.com");
+            put(NetVideoFrom.Bilibili, "http://m.bilibili.com");
+            put(NetVideoFrom.YouTube,  "https://m.youtube.com");
+        }
+    };
     private static Map<NetVideoFrom, String> HomeUrlAPI = new HashMap<NetVideoFrom, String>(){
         {
             put(NetVideoFrom.Youku,"http://www.youku.com");
             put(NetVideoFrom.QQLive,"http://m.v.qq.com");
             put(NetVideoFrom.IQiYi,"http://m.iqiyi.com/");
             put(NetVideoFrom.CloudMusic,"http://music.163.com/api/cloudsearch/get/web?s=jfla&limit=50&type=1014&offset=0");
-            put(NetVideoFrom.Bilibili,"http://www.bilibili.com/index/catalogy/1-3day.json");
+            put(NetVideoFrom.Bilibili,"https://www.bilibili.com/index/catalogy/1-3day.json");
         }
     };
     private static Map<NetVideoFrom, String> searchAPI = new HashMap<NetVideoFrom, String>(){
@@ -94,6 +105,28 @@ public class NetVideoHelper {
             e.printStackTrace();
         }
         return bmp;
+    }
+
+    public static String getVideoTitleByUrl(String url, NetVideoFrom type){
+        String title = "";
+        switch (type){
+            case Bilibili:
+                title = BilibiliAnalyze.getTitleByUrl(url);
+                break;
+            case Youku:
+                title = YouKuAnalyze.getTitleByUrl(url);
+                break;
+            case QQLive:
+                title = QQLiveAnalyze.getTitleByUrl(url);
+                break;
+            case IQiYi:
+                title = IQiYiAnalyze.getTitleByUrl(url);
+                break;
+            case YouTube:
+                title = YouTubeAnalyze.getTitleByUrl(url);
+                break;
+        }
+        return title;
     }
 
     public static List<VideoUrlItem> getNetVideoUrlList(NetVideo nv, NetVideoFrom type){
@@ -171,6 +204,9 @@ public class NetVideoHelper {
         String api = HomeUrlAPI.get(type);
         String retStr;
         switch (type){
+            case Live:
+                list = LiveAnalyze.GetVideoListByHome();
+                break;
             case Youku:
                 retStr = sendDataByGet(api,"Android");
                 list = YouKuAnalyze.GetVideoListByHome(retStr);
@@ -217,7 +253,7 @@ public class NetVideoHelper {
     }
 
     @NonNull
-    private static String sendDataByGet(String path, String user_agent){
+    public static String sendDataByGet(String path, String user_agent){
         HttpURLConnection conn;//声明连接对象
         InputStream is;
         StringBuilder resultData = new StringBuilder();
@@ -243,7 +279,7 @@ public class NetVideoHelper {
         return resultData.toString();
     }
     @NonNull
-    private static String sendDataByPost(String path){
+    public static String sendDataByPost(String path){
         HttpURLConnection conn;//声明连接对象
         InputStream is;
         StringBuilder resultData = new StringBuilder();
@@ -292,6 +328,10 @@ public class NetVideoHelper {
         if (url.contains("m.youku.com/video")){
             url = url.replace("m.youku.com/video","v.youku.com/v_show");
         }
+        if (url.contains("m.v.qq.com/x/cover/g/"))
+            url = url.replace("http://m.v.qq.com/x/cover/g/","https://v.qq.com/x/cover/");
+        int len = url.indexOf("?");
+        if (len > 0) url = url.substring(0,len);
         String anaStr = sendDataByPost("http://www.fanjuba.com/ckmov/?url=" + url);
         String post = Tools.getStrWithRegular("post\\(\"(.*)\"\\,\\s+\\{",anaStr);
         String time = Tools.getStrWithRegular("time\":\"(\\w+)\"",anaStr);
@@ -305,5 +345,89 @@ public class NetVideoHelper {
             e.printStackTrace();
         }
         return videoUrl;
+    }
+    public static String getVideoUrlFrom163ren(String url){
+        String anaStr = sendDataByGet("http://jx.api.163ren.com/vod.php?url=" + url, "Win32");
+        String param = Tools.getStrWithRegular("url\\s+: '([\\s\\S][^']+)',",anaStr);
+        anaStr = sendDataByGet("http://jx.api.163ren.com/api.php?url=" + param, "Win32");
+        String videoUrl = "http" + Tools.getStrWithRegular("http([\\s\\S][^']+)]]",anaStr);
+        return videoUrl;
+    }
+    public static String getVideoUrlFromBiliBili(String url){
+        return BilibiliAnalyze.getVideoUrl(url);
+    }
+    public static boolean checkWebViewUrl(String url, NetVideoFrom type){
+        switch (type){
+            case Youku:
+                return YouKuAnalyze.checkVideoUrl(url);
+            case Bilibili:
+                return BilibiliAnalyze.checkVideoUrl(url);
+            case QQLive:
+                return QQLiveAnalyze.checkVideoUrl(url);
+            case IQiYi:
+                return IQiYiAnalyze.checkVideoUrl(url);
+            case YouTube:
+                return YouTubeAnalyze.checkVideoUrl(url);
+            default:
+                return false;
+        }
+    }
+
+    public static String getPageLoadedJs(NetVideoFrom type) {
+        switch (type){
+            case Youku:
+                return YouKuAnalyze.getPageLoadedJs();
+            case Bilibili:
+                return BilibiliAnalyze.getPageLoadedJs();
+            case QQLive:
+                return QQLiveAnalyze.getPageLoadedJs();
+            case IQiYi:
+                return IQiYiAnalyze.getPageLoadedJs();
+            case YouTube:
+                return YouTubeAnalyze.getPageLoadedJs();
+            default:
+                return "";
+        }
+    }
+
+    public static String getVideoUrl(String url, NetVideoFrom type) {
+        String videoUrl = "";
+        switch (type){
+            case Bilibili:
+                videoUrl = getVideoUrlFromBiliBili(url);
+                break;
+            case IQiYi:
+                url = url.replace("//m.","//www.");
+                videoUrl = getVideoUrlFromThird(url);
+                break;
+            case QQLive:
+                url = url.substring(0, url.indexOf(".html")+5).replace("m.v.qq.com/x/cover/q/", "v.qq.com/x/cover/");
+                videoUrl = getVideoUrlFromThird(url);
+                break;
+            case YouTube:
+                videoUrl = YouTubeAnalyze.getVideoUrl(url);
+                break;
+            default:
+                videoUrl = getVideoUrlFromThird(url);
+                break;
+        }
+        return videoUrl;
+    }
+
+    public static boolean getIsShield(String url, NetVideoFrom type){
+        switch (type){
+            case Youku:
+                return YouKuAnalyze.isShield(url);
+            case Bilibili:
+                return BilibiliAnalyze.isShield(url);
+            case QQLive:
+                return QQLiveAnalyze.isShield(url);
+            case IQiYi:
+                return IQiYiAnalyze.isShield(url);
+            case YouTube:
+                return YouTubeAnalyze.isShield(url);
+            default:
+                return false;
+        }
     }
 }

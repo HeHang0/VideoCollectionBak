@@ -1,6 +1,8 @@
 package com.exer.videoapi.anlysis;
 
 import com.exer.videoapi.NetVideo;
+import com.exer.videoapi.NetVideoHelper;
+import com.exer.widgets.Tools;
 import com.exer.widgets.VideoUrlItem;
 
 import org.json.JSONArray;
@@ -135,5 +137,33 @@ public class YouKuAnalyze {
         }
 
         return list;
+    }
+
+    public static String getTitleByUrl(String url) {
+        String title = "";
+        String vid = Tools.getStrWithRegular("id_([\\s\\S]+).html",url);
+        String anaStr = NetVideoHelper.sendDataByGet("http://openapi.youku.com/v2/videos/show_basic.json?video_id=" + vid + "&client_id=b10ab8588528b1b1", "Win32");
+        try {
+            title = new JSONObject(anaStr).getString("title");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return title;
+    }
+
+    public static boolean checkVideoUrl(String url) {
+        if (url.contains("youku.com/video") || url.contains("youku.com/v_show"))
+            return true;
+        else
+            return false;
+    }
+
+    public static String getPageLoadedJs() {
+        return "function closeAd(){if($('div [sourcetype=\\'yksmartbanner_index_0\\'] :first').length > 0) $('div [sourcetype=\\'yksmartbanner_index_0\\'] :first').click()};closeAd();";
+    }
+
+    private static String shieldUrls = "";
+    public static boolean isShield(String url) {
+        return  shieldUrls.contains(url) || url.contains(".apk");
     }
 }
