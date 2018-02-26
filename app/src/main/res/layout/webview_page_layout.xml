@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/findVideo_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </WebView>
+    <ProgressBar
+        android:id="@+id/loading_youku"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#E0FFFFFF"
+        android:indeterminateBehavior="repeat"
+        android:indeterminateOnly="true"
+        android:padding="150dp" />
+</android.support.constraint.ConstraintLayout>

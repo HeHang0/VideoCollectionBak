@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "F:\\Programing\\AndroidTest\\VideoCollection\\vitamio\\build\\intermediates\\res\\merged\\release\\drawable\\mediacontroller_button.xml",
+        "source": "F:\\Programing\\AndroidTest\\VideoCollection\\vitamio\\res\\drawable\\mediacontroller_button.xml"
+    },
+    {
+        "merged": "F:\\Programing\\AndroidTest\\VideoCollection\\vitamio\\build\\intermediates\\res\\merged\\release\\drawable\\scrubber_control_selector_holo.xml",
+        "source": "F:\\Programing\\AndroidTest\\VideoCollection\\vitamio\\res\\drawable\\scrubber_control_selector_holo.xml"
+    },
+    {
+        "merged": "F:\\Programing\\AndroidTest\\VideoCollection\\vitamio\\build\\intermediates\\res\\merged\\release\\drawable\\scrubber_progress_horizontal_holo_dark.xml",
+        "source": "F:\\Programing\\AndroidTest\\VideoCollection\\vitamio\\res\\drawable\\scrubber_progress_horizontal_holo_dark.xml"
+    }
+]

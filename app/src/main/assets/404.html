@@ -1,0 +1,45 @@
+<html>
+<head lang="zh-CN">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>找不到这个页面啦！是不是天然呆打错啦!</title>
+	<style>
+		a{font-size:12px; text-decoration:none;color:#333}a:hover{text-decoration:none;color:#0e0}</style>
+</head>
+<body>
+	<div align="center" style='font-family:"微软雅黑"'>
+		<img src="404.jpg" border="0" height="" /></a>
+
+		<!--<embed src="404.mp3" width="0" height="0" type=audio/mpeg loop="0" autostart="1" volume="0">-->
+
+    </div>
+	<script>
+        function playSound() {
+            var borswer = window.navigator.userAgent.toLowerCase();
+            if (borswer.indexOf("ie") >= 0) {
+                //IE内核浏览器
+                var strEmbed = '<embed name="embedPlay" src="404.mp3" autostart="true" hidden="true" loop="false"></embed>';
+                if ($("body").find("embed").length <= 0)
+                    $("body").append(strEmbed);
+                var embed = document.embedPlay;
+
+                //浏览器不支持 audion，则使用 embed 播放
+                embed.volume = 100;
+                //embed.play();这个不需要
+            } else {
+                //非IE内核浏览器
+                var strAudio = "<audio id='audioPlay' src='404.mp3' hidden='true'></audio>";
+                if ($("body").find("audio").length <= 0)
+                    $("body").append(strAudio);
+                var audio = document.getElementById("audioPlay");
+
+                //浏览器支持 audio
+                audio.play();
+            }
+        }
+        window.onload = playSound();
+    </script>
+</body>
+</html>

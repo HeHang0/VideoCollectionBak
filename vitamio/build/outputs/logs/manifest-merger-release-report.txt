@@ -1,0 +1,55 @@
+-- Merging decision tree log ---
+manifest
+ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:1:1-18:12
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:1:1-18:12
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:1:1-18:12
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:1:1-18:12
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:1:1-18:12
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:1:1-18:12
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:1:1-18:12
+	package
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:2:11-35
+		INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+		INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+	android:versionName
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:4:11-36
+		INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+		INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+	xmlns:android
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:1:11-69
+	android:versionCode
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:3:11-36
+		INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+		INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:7:5-80
+	android:name
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:7:22-77
+application
+ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:9:5-16:19
+activity#io.vov.vitamio.activity.InitActivity
+ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:10:9-15:66
+	android:launchMode
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:13:17-47
+	android:windowSoftInputMode
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:15:17-64
+	android:configChanges
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:12:17-117
+	android:theme
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:14:17-64
+	android:name
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml:11:17-68
+uses-sdk
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+		INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+		ADDED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
+		INJECTED from F:\Programing\AndroidTest\VideoCollection\vitamio\AndroidManifest.xml
