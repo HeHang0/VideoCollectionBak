@@ -332,6 +332,8 @@ public class MainActivity extends AppCompatActivity
                             Message msg = new Message();
                             Bundle data = new Bundle();
                             data.putString("VideoTitle",NetVideoHelper.getVideoTitleByUrl(param, pageType));
+                            String url =  NetVideoHelper.getVideoUrl(param, pageType);
+                            if (url =="") return;
                             data.putString("VideoUrl",NetVideoHelper.getVideoUrl(param, pageType));
                             data.putInt("MessageType",MessageType.OpenVideo.ordinal());
                             msg.setData(data);

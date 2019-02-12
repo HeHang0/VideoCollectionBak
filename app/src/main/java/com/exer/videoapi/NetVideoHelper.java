@@ -332,15 +332,15 @@ public class NetVideoHelper {
             url = url.replace("http://m.v.qq.com/x/cover/g/","https://v.qq.com/x/cover/");
         int len = url.indexOf("?");
         if (len > 0) url = url.substring(0,len);
-        String anaStr = sendDataByPost("http://www.fanjuba.com/ckmov/?url=" + url);
-        String post = Tools.getStrWithRegular("post\\(\"(.*)\"\\,\\s+\\{",anaStr);
-        String time = Tools.getStrWithRegular("time\":\"(\\w+)\"",anaStr);
-        String key = Tools.getStrWithRegular("key\": \"(\\w+)\"",anaStr);
-        String type = Tools.getStrWithRegular("type\": \"(\\w+)\"",anaStr);
-        anaStr = sendDataByPost("http://www.fanjuba.com/ckmov/" + post + "?time=" + time + "&key=" + key + "&url=" + url + "&type=" + type);
+        String hashStr = sendDataByGet("https://www.parsevideo.com", "Win32");
+        String hash = Tools.getStrWithRegular("var\\W+hash\\W+=\\W+\"([^\"]+)\";",hashStr);
+        String anaStr = sendDataByGet("https://www.parsevideo.com/api.php?hash="+hash+"&url=" + url, "Win32");
         String videoUrl = "";
         try {
-            videoUrl = new JSONObject(anaStr).getString("url");
+            int total =  new JSONObject(anaStr).getInt("total");
+            if (total > 0){
+                videoUrl = new JSONObject(anaStr).getJSONArray("video").getJSONObject(0).getString("url");
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -393,6 +393,9 @@ public class NetVideoHelper {
     public static String getVideoUrl(String url, NetVideoFrom type) {
         String videoUrl = "";
         switch (type){
+            case Youku:
+                videoUrl = getVideoUrlFromThird(url);
+                break;
             case Bilibili:
                 videoUrl = getVideoUrlFromBiliBili(url);
                 break;
